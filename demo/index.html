@@ -36,11 +36,21 @@
       position: sticky; top: 0; z-index: 100;
       background: linear-gradient(135deg, #1a1d27 0%, #2d1a2e 100%);
       border-bottom: 1px solid var(--border);
-      padding: 12px 24px;
+      padding: 16px 24px;
       display: flex; align-items: center; justify-content: space-between;
     }
     .header h1 { font-size: 18px; white-space: nowrap; }
     .header h1 span { color: var(--accent); }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .nav-full-code {
+      padding: 5px 14px; border-radius: 4px; font-size: 10px;
+      font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;
+      background: rgba(51,154,240,0.15); color: var(--blue);
+      border: 1px solid rgba(51,154,240,0.3);
+      text-decoration: none; white-space: nowrap;
+      transition: background 0.2s;
+    }
+    .nav-full-code:hover { background: rgba(51,154,240,0.25); }
     .badge-demo {
       padding: 4px 12px; border-radius: 4px; font-size: 10px;
       font-weight: bold; text-transform: uppercase; letter-spacing: 1px;
@@ -49,9 +59,9 @@
 
     /* ═══════ JOURNEY BAR ═══════ */
     .journey-bar {
-      position: sticky; top: 46px; z-index: 99;
+      position: sticky; top: 52px; z-index: 99;
       display: flex; align-items: center; justify-content: center;
-      padding: 10px 24px;
+      padding: 14px 24px;
       background: var(--surface); border-bottom: 1px solid var(--border);
     }
     .j-step {
@@ -295,7 +305,7 @@
 
     /* ═══════ CTA ═══════ */
     .cta-section { text-align: center; padding: 60px 20px 40px; }
-    .cta-section h2 { font-size: 22px; margin-bottom: 8px; }
+    .cta-section h2 { font-size: 22px; margin-bottom: 8px; scroll-margin-top: 120px; }
     .cta-section .sub { color: var(--text-dim); font-size: 13px; margin-bottom: 28px; }
     .cta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; max-width: 900px; margin: 0 auto; text-align: left; }
     .cta-card {
@@ -403,9 +413,11 @@
     @media (max-width: 640px) {
       .vs-grid { grid-template-columns: 1fr; }
       .cta-grid { grid-template-columns: 1fr; max-width: 720px; }
-      .header { padding: 10px 16px; }
+      .header { padding: 12px 16px; }
       .header h1 { font-size: 15px; }
-      .journey-bar { padding: 8px 12px; }
+      .header-right { gap: 8px; }
+      .nav-full-code { font-size: 9px; padding: 4px 10px; }
+      .journey-bar { padding: 10px 12px; }
       .j-step span { display: none; }
       .j-conn { width: 20px; }
       .scene { padding: 40px 16px; min-height: 60vh; }
@@ -422,7 +434,10 @@
   <!-- HEADER -->
   <div class="header">
     <h1><span>&#127850;</span> CookieJar Lab</h1>
-    <span class="badge-demo">Interactive Demo</span>
+    <div class="header-right">
+      <a href="#full-attack" class="nav-full-code">Full Code</a>
+      <span class="badge-demo">Interactive Demo</span>
+    </div>
   </div>
 
   <!-- JOURNEY BAR -->
@@ -678,7 +693,7 @@
        ═══════════════════════ -->
   <section class="cta-section hidden" id="cta">
     <div style="max-width:900px; margin:0 auto;">
-      <h2>Try the full attack with real data</h2>
+      <h2 id="full-attack">Try the full attack with real data</h2>
       <p class="sub">Register your own account, steal your own cookie, and replay it yourself.</p>
 
       <div class="cta-grid">
@@ -913,6 +928,11 @@
       show('cta');
       goTo('hardened');
     }
+
+    /* ── Full Code shortcut ── */
+    document.querySelector('.nav-full-code').addEventListener('click', function(e) {
+      show('cta');
+    });
   </script>
 </body>
 </html>

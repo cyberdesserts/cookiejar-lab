@@ -132,3 +132,9 @@ This lab demonstrates a fundamental gap in web security: **authentication protec
 - [NIST SP 800-63B: Authentication & Lifecycle Management](https://pages.nist.gov/800-63-3/sp800-63b.html)
 - [Token Binding (RFC 8471)](https://tools.ietf.org/html/rfc8471)
 - [FIDO2/WebAuthn Specification](https://fidoalliance.org/fido2/)
+
+---
+
+<p align="center">
+  A <a href="https://cyberdesserts.com">CyberDesserts</a> project - Learn Cybersecurity By Doing
+</p>

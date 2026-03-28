@@ -64,3 +64,9 @@ When you're done with the lab:
 - [ ] Run `./cleanup.sh` (removes CA + certs)
 - [ ] Remove `/etc/hosts` entry if added (cleanup.sh will remind you)
 - [ ] Optionally: `docker compose down -v` to remove Docker volumes
+
+---
+
+<p align="center">
+  A <a href="https://cyberdesserts.com">CyberDesserts</a> project - Learn Cybersecurity By Doing
+</p>
