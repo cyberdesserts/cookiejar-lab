@@ -16,8 +16,8 @@ This lab shows you how stolen browser cookies let attackers bypass passwords and
 ## Quick Start
 
 ```bash
-git clone https://github.com/CyberDesserts/cookie-jar.git
-cd cookie-jar/cookiejar-lab
+git clone https://github.com/cyberdesserts/cookiejar-lab.git
+cd cookiejar-lab
 docker compose up --build
 ```
 
@@ -34,8 +34,8 @@ You need [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](http
 Uses [mkcert](https://github.com/FiloSottile/mkcert) for trusted local TLS certificates. This makes the lab more realistic: the vulnerable app sets `secure: true` but `httpOnly: false`, showing that HTTPS protects the wire but not the cookie store.
 
 ```bash
-git clone https://github.com/CyberDesserts/cookie-jar.git
-cd cookie-jar/cookiejar-lab
+git clone https://github.com/cyberdesserts/cookiejar-lab.git
+cd cookiejar-lab
 ./setup.sh              # Generates certs, configures /etc/hosts
 docker compose up --build
 ```
@@ -162,7 +162,7 @@ Infostealers don't attack Google. They attack your browser's cookie store and st
 ## Project Structure
 
 ```
-cookie-jar/                          <- repository root
+cookiejar-lab/                       <- repository root
 ├── README.md                        # Repo landing page
 ├── .gitignore                       # Root-level ignores
 ├── demo/

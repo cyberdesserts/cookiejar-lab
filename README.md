@@ -18,8 +18,8 @@ Open [`demo/index.html`](demo/index.html) in your browser - no setup required. T
 The full lab runs two apps side by side - a deliberately vulnerable app and a hardened app - so you can steal a session cookie and replay it, then see exactly which defences block the same attack.
 
 ```bash
-git clone https://github.com/CyberDesserts/cookie-jar.git
-cd cookie-jar/cookiejar-lab
+git clone https://github.com/cyberdesserts/cookiejar-lab.git
+cd cookiejar-lab
 docker compose up --build
 ```
 
