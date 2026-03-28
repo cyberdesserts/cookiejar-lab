@@ -2,5 +2,5 @@
 .DS_Store
 Thumbs.db
 
-# Documentation artifacts (stale exports)
+# Documentation build artifacts
 *.docx

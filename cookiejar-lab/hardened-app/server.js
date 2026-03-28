@@ -173,9 +173,6 @@ function issueSecureSession(res, req, user, authMethod) {
     expiresIn: ACCESS_TOKEN_EXPIRY, // ✅ SECURITY CONTROL - 15 minutes, not 7 days
   });
 
-  // ✅ SECURITY CONTROL - HttpOnly: true prevents JavaScript access
-  // ✅ SECURITY CONTROL - Secure: true ensures HTTPS only (relaxed in dev)
-  // ✅ SECURITY CONTROL - SameSite: Strict prevents CSRF
   res.cookie('session', accessToken, {
     httpOnly: true,        // ✅ SECURITY CONTROL - JS cannot read this cookie
     secure: tlsEnabled,    // ✅ SECURITY CONTROL - HTTPS only when TLS is available
@@ -229,7 +226,7 @@ function requireAuth(req, res, next) {
     if (session.user_agent_hash !== currentUaHash) {
       logSessionEvent(decoded.sessionId, 'ua_mismatch', req,
         `Expected: ${session.user_agent_hash}, Got: ${currentUaHash}`);
-      // Don't immediately block - log and flag
+      // Log mismatch but don't block (monitoring mode)
     }
 
     if (session.ip_address !== currentIp) {
@@ -330,7 +327,7 @@ app.post('/api/login', async (req, res) => {
         secret: user.totp_secret,
         encoding: 'base32',
         token: totpCode,
-        window: 4, // Allow 4 time steps of drift (2 minutes) for clock skew
+        window: 4, // ±2 minutes of clock drift tolerance
       });
 
       if (!totpValid) {
@@ -776,7 +773,7 @@ app.post('/api/logout', (req, res) => {
       db.prepare('UPDATE sessions SET is_active = 0 WHERE id = ?').run(decoded.sessionId);
       logSessionEvent(decoded.sessionId, 'logout', req);
     } catch (e) {
-      // Token expired or invalid - that's fine for logout
+      // Expired/invalid token is expected during logout
     }
   }
 

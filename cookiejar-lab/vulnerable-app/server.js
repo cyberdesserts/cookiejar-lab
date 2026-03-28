@@ -100,7 +100,7 @@ function issueSessionCookie(res, payload) {
 
   res.cookie('session', token, {
     httpOnly: false,                        // ⚠️ INTENTIONALLY INSECURE - allows JavaScript to read the cookie
-    secure: tlsEnabled,                     // ⚠️ INTENTIONALLY INSECURE - even with HTTPS, httpOnly:false means JS can still steal it
+    secure: tlsEnabled,                     // ⚠️ INTENTIONALLY INSECURE - JS can still read the cookie even over HTTPS
     sameSite: tlsEnabled ? 'None' : 'Lax', // ⚠️ INTENTIONALLY INSECURE - 'None' sends cookie cross-site (requires secure:true)
     maxAge: 7 * 24 * 60 * 60 * 1000,       // ⚠️ INTENTIONALLY INSECURE - 7 days
     path: '/',
@@ -223,7 +223,7 @@ app.post('/api/login', async (req, res) => {
         secret: user.totp_secret,
         encoding: 'base32',
         token: totpCode,
-        window: 4, // Allow 4 time steps of drift (2 minutes) for clock skew
+        window: 4, // ±2 minutes of clock drift tolerance
       });
 
       if (!totpValid) {
@@ -400,17 +400,15 @@ app.get('/oauth/google/callback', (req, res) => {
   // Generate mock access token (simulates what Google returns)
   const mockAccessToken = crypto.randomBytes(32).toString('hex');
 
-  // ⚠️ INTENTIONALLY INSECURE - the session cookie issued after OAuth is
-  // identical in structure and vulnerability to the password+TOTP flow.
-  // This is the KEY insight: OAuth authenticates you to the app, but the
-  // app then issues its OWN session token that is just as stealable.
+  // ⚠️ INTENTIONALLY INSECURE - OAuth session cookie is identical to
+  // password+TOTP flow. OAuth authenticates you, but the app's own token is just as stealable.
   const payload = {
     userId: user.id,
     username: user.username,
     email: user.email,
     authMethod: 'google-oauth',
     provider: 'google',
-    accessToken: mockAccessToken, // ⚠️ INTENTIONALLY INSECURE - leaking tokens in JWT
+    accessToken: mockAccessToken, // ⚠️ INTENTIONALLY INSECURE - token leaked in JWT payload
     issuedAt: new Date().toISOString(),
   };
 
