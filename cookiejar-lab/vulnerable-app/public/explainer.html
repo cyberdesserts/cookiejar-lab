@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍪</text></svg>">
+  <title>Session Security Guide | CookieJar Lab</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-2: #242836;
+      --accent: #ff6b6b;
+      --accent-2: #ffa36b;
+      --green: #51cf66;
+      --blue: #339af0;
+      --text: #e1e4eb;
+      --text-dim: #8b92a5;
+      --border: #2d3348;
+      --danger: #ff4757;
+      --purple: #b197fc;
+      --header-gradient: linear-gradient(135deg, #1a1d27 0%, #2d1a2e 100%);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6; }
+
+    /* ── Header ── */
+    .header {
+      background: var(--header-gradient);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      line-height: normal;
+    }
+    .header h1 { font-size: 20px; }
+    .header h1 span { color: var(--accent); }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .nav-link { color: var(--text-dim); text-decoration: none; font-size: 13px; transition: color 0.2s; white-space: nowrap; }
+    .nav-link:hover { color: var(--text); }
+    .nav-link.active { color: var(--accent); }
+    .app-badge { padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+    .badge-vuln { background: var(--danger); color: #1a1d27; }
+    .badge-hard { background: var(--green); color: #0f1117; }
+    .btn-logout { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .nav-auth-btn {
+      min-width: 80px;
+      text-align: center;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .nav-auth-btn:hover { opacity: 0.85; }
+    .nav-auth-btn.login-btn {
+      background: var(--accent);
+      color: #1a1d27;
+    }
+    .nav-auth-btn.logout-btn {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .nav-link.disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* ── Section nav ── */
+    .section-nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      position: sticky;
+      top: 0;
+      z-index: 49;
+      -webkit-overflow-scrolling: touch;
+    }
+    .section-nav a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 11px;
+      padding: 10px 14px;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .section-nav a:hover { color: var(--text); border-bottom-color: var(--border); }
+    .section-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ── Container ── */
+    .container { max-width: 940px; margin: 0 auto; padding: 0 20px; }
+
+    /* ── Sections ── */
+    .section { padding: 48px 0 24px; }
+    .section-title { font-size: 20px; margin-bottom: 8px; }
+    .section-subtitle { color: var(--text-dim); font-size: 13px; margin-bottom: 28px; line-height: 1.6; }
+
+    /* ── Hero ── */
+    .hero { padding: 48px 0 32px; text-align: center; }
+    .hero h2 { font-size: 26px; margin-bottom: 8px; }
+    .hero h2 em { color: var(--accent); font-style: normal; }
+    .hero .sub { color: var(--text-dim); font-size: 13px; max-width: 600px; margin: 0 auto 20px; }
+    .status-pill {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+    .status-pill.logged-in { background: rgba(81, 207, 102, 0.12); border: 1px solid rgba(81, 207, 102, 0.3); color: var(--green); }
+    .status-pill.logged-out { background: rgba(139, 146, 165, 0.12); border: 1px solid rgba(139, 146, 165, 0.3); color: var(--text-dim); }
+    .hero-meta { font-size: 11px; color: var(--text-dim); }
+    .hero-meta a { color: var(--blue); text-decoration: none; }
+    .hero-meta a:hover { text-decoration: underline; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .card h3 {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+
+    /* ── Flow diagram ── */
+    .flow { display: flex; align-items: center; gap: 0; overflow-x: auto; padding: 8px 0; margin-bottom: 16px; }
+    .flow-node {
+      background: var(--surface-2);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s;
+      min-width: 120px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .flow-node:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .flow-node.active { border-color: var(--accent); background: rgba(255, 107, 107, 0.08); }
+    .flow-node .icon { font-size: 22px; margin-bottom: 6px; }
+    .flow-arrow { color: var(--text-dim); font-size: 18px; padding: 0 6px; flex-shrink: 0; }
+
+    /* ── Expandable panels ── */
+    .expand-panel {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.3s ease;
+      background: var(--bg);
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--text-dim);
+    }
+    .expand-panel.open {
+      max-height: 800px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    .expand-panel strong { color: var(--text); }
+    .expand-panel code { background: var(--surface-2); padding: 1px 5px; border-radius: 3px; color: var(--accent-2); font-size: 11px; }
+
+    /* ── Callout ── */
+    .callout {
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 12px;
+      line-height: 1.6;
+      margin: 16px 0;
+    }
+    .callout-info { background: rgba(51, 154, 240, 0.1); border: 1px solid rgba(51, 154, 240, 0.3); color: #74c0fc; }
+    .callout-warn { background: rgba(255, 163, 107, 0.1); border: 1px solid rgba(255, 163, 107, 0.3); color: #ffa36b; }
+    .callout-danger { background: rgba(255, 71, 87, 0.1); border: 1px solid rgba(255, 71, 87, 0.3); color: #ff8a94; }
+    .callout-success { background: rgba(81, 207, 102, 0.1); border: 1px solid rgba(81, 207, 102, 0.3); color: #69db7c; }
+    .callout-purple { background: rgba(177, 151, 252, 0.1); border: 1px solid rgba(177, 151, 252, 0.3); color: #d0bfff; }
+    .callout strong { color: inherit; }
+    .callout code { background: rgba(0,0,0,0.2); padding: 1px 5px; border-radius: 3px; }
+
+    /* ── Cookie anatomy ── */
+    .cookie-anatomy {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      font-size: 12px;
+    }
+    .cookie-field {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .cookie-field:last-child { border-bottom: none; }
+    .cookie-field .key { color: var(--text-dim); min-width: 100px; }
+    .cookie-field .val { color: var(--accent-2); font-weight: 600; word-break: break-all; text-align: right; flex: 1; margin-left: 12px; }
+
+    /* ── JWT explorer ── */
+    .jwt-band {
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.25s;
+      border: 1px solid transparent;
+    }
+    .jwt-band:hover { transform: translateY(-1px); }
+    .jwt-band.active { border-radius: 8px 8px 0 0; margin-bottom: 0; }
+    .jwt-band-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 4px; }
+    .jwt-band-value { font-size: 11px; word-break: break-all; opacity: 0.8; font-family: inherit; }
+    .jwt-header-band { background: rgba(255, 107, 107, 0.12); }
+    .jwt-header-band .jwt-band-label { color: var(--accent); }
+    .jwt-header-band .jwt-band-value { color: #ff8a8a; }
+    .jwt-header-band:hover, .jwt-header-band.active { background: rgba(255, 107, 107, 0.18); border-color: rgba(255, 107, 107, 0.3); }
+    .jwt-payload-band { background: rgba(255, 163, 107, 0.12); }
+    .jwt-payload-band .jwt-band-label { color: var(--accent-2); }
+    .jwt-payload-band .jwt-band-value { color: #ffb980; }
+    .jwt-payload-band:hover, .jwt-payload-band.active { background: rgba(255, 163, 107, 0.18); border-color: rgba(255, 163, 107, 0.3); }
+    .jwt-sig-band { background: rgba(177, 151, 252, 0.12); }
+    .jwt-sig-band .jwt-band-label { color: var(--purple); }
+    .jwt-sig-band .jwt-band-value { color: #c4aeff; }
+    .jwt-sig-band:hover, .jwt-sig-band.active { background: rgba(177, 151, 252, 0.18); border-color: rgba(177, 151, 252, 0.3); }
+
+    .jwt-expand {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+    .jwt-expand.open {
+      max-height: 500px;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0 0 8px 8px;
+      margin-bottom: 8px;
+    }
+    .jwt-expand-inner {
+      padding: 16px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-dim);
+      background: var(--bg);
+    }
+    .jwt-expand-inner pre {
+      background: var(--surface-2);
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      overflow-x: auto;
+      margin: 8px 0;
+      color: var(--text);
+    }
+    .jwt-expand-inner strong { color: var(--text); }
+
+    /* ── Heatmap bars ── */
+    .heatmap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .heatmap-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .heatmap-card h4 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .heatmap-card.vuln-card h4 { color: var(--danger); }
+    .heatmap-card.hard-card h4 { color: var(--green); }
+
+    .flag-bar {
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .flag-bar:hover { transform: translateX(3px); }
+    .flag-bar.insecure { background: rgba(255, 71, 87, 0.12); color: #ff8a94; border: 1px solid rgba(255, 71, 87, 0.2); }
+    .flag-bar.secure { background: rgba(81, 207, 102, 0.12); color: #69db7c; border: 1px solid rgba(81, 207, 102, 0.2); }
+    .flag-bar .flag-val { font-weight: 400; font-size: 11px; opacity: 0.8; }
+
+    .flag-detail {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+    .flag-detail.open {
+      max-height: 400px;
+    }
+    .flag-detail-inner {
+      padding: 12px 14px;
+      font-size: 11px;
+      line-height: 1.7;
+      color: var(--text-dim);
+      background: var(--bg);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      border: 1px solid var(--border);
+    }
+    .flag-detail-inner strong { color: var(--text); }
+
+    /* ── Attack chain ── */
+    .attack-chain { display: flex; align-items: stretch; gap: 0; overflow-x: auto; padding: 8px 0; margin-bottom: 16px; }
+    .attack-stage {
+      flex: 1;
+      min-width: 140px;
+      padding: 16px 12px;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s;
+      border: 2px solid transparent;
+      position: relative;
+    }
+    .attack-stage:hover { transform: translateY(-3px); }
+    .attack-stage.active { border-color: white; }
+    .attack-stage .stage-num { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; margin-bottom: 6px; }
+    .attack-stage .stage-icon { font-size: 28px; margin-bottom: 6px; }
+    .attack-stage .stage-label { font-size: 11px; font-weight: 600; }
+    .stage-arrow { display: flex; align-items: center; color: var(--text-dim); font-size: 16px; flex-shrink: 0; }
+    .attack-stage-1 { background: rgba(51, 154, 240, 0.15); color: #74c0fc; }
+    .attack-stage-2 { background: rgba(51, 154, 240, 0.1); color: #74c0fc; }
+    .attack-stage-3 { background: rgba(255, 163, 107, 0.15); color: #ffa36b; }
+    .attack-stage-4 { background: rgba(255, 107, 107, 0.15); color: #ff8a8a; }
+    .attack-stage-5 { background: rgba(255, 71, 87, 0.18); color: #ff8a94; }
+
+    /* ── Timeline ── */
+    .timeline-bar {
+      display: flex;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+    }
+    .timeline-zone {
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .timeline-zone:hover { filter: brightness(1.15); }
+    .timeline-zone.active { outline: 2px solid white; outline-offset: -2px; }
+    .timeline-zone h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .timeline-zone p { font-size: 11px; opacity: 0.8; }
+    .auth-zone { background: rgba(51, 154, 240, 0.12); color: #74c0fc; flex: 2; }
+    .handoff-zone {
+      background: rgba(177, 151, 252, 0.15); color: #d0bfff;
+      flex: 0 0 auto; width: 100px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border-left: 2px dashed rgba(177, 151, 252, 0.4);
+      border-right: 2px dashed rgba(177, 151, 252, 0.4);
+    }
+    .session-zone { background: rgba(255, 71, 87, 0.12); color: #ff8a94; flex: 3; }
+
+    /* ── Defense stack ── */
+    .defense-stack { display: flex; flex-direction: column; gap: 4px; }
+    .defense-layer {
+      display: flex;
+      align-items: center;
+      padding: 14px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.25s;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+    .defense-layer:hover { transform: translateX(4px); }
+    .defense-layer.active-defense { background: rgba(81, 207, 102, 0.1); color: #69db7c; border-color: rgba(81, 207, 102, 0.2); }
+    .defense-layer.missing-defense { background: rgba(255, 71, 87, 0.08); color: #ff8a94; border-color: rgba(255, 71, 87, 0.15); }
+    .defense-layer .layer-num { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.6; margin-right: 14px; min-width: 55px; }
+    .defense-layer .layer-status { margin-left: auto; font-size: 11px; font-weight: 400; opacity: 0.7; }
+
+    .defense-toggle {
+      display: flex;
+      gap: 0;
+      margin-bottom: 12px;
+    }
+    .defense-toggle button {
+      flex: 1;
+      padding: 8px;
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text-dim);
+      transition: all 0.2s;
+    }
+    .defense-toggle button:first-child { border-radius: 6px 0 0 6px; }
+    .defense-toggle button:last-child { border-radius: 0 6px 6px 0; }
+    .defense-toggle button.active { background: var(--accent); color: #1a1d27; border-color: var(--accent); }
+
+    /* ── Future cards ── */
+    .future-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .future-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .future-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+    .future-card h4 { font-size: 13px; margin-bottom: 4px; color: var(--blue); }
+    .future-card p { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+    .future-card .expand-detail {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .future-card .expand-detail.open { max-height: 200px; }
+    .future-card .expand-detail-inner { padding-top: 10px; font-size: 11px; color: var(--text-dim); line-height: 1.6; border-top: 1px solid var(--border); margin-top: 10px; }
+    .future-card .expand-detail-inner a { color: var(--blue); text-decoration: none; }
+    .future-card .expand-detail-inner a:hover { text-decoration: underline; }
+
+    /* ── Glossary ── */
+    .glossary-search {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 16px;
+    }
+    .glossary-search:focus { border-color: var(--accent); }
+    .glossary-grid { columns: 2; column-gap: 16px; }
+    .glossary-term {
+      break-inside: avoid;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .glossary-term .term-name { font-weight: 700; color: var(--accent); margin-bottom: 2px; font-size: 12px; }
+    .glossary-term .term-def { color: var(--text-dim); line-height: 1.5; font-size: 11px; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-block;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-accent { background: var(--accent); color: #1a1d27; }
+    .btn-surface { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .btn-copy { background: var(--blue); color: white; }
+    .btn-copy.copied { background: var(--green); }
+
+    .jwt-io-cta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-top: 16px;
+    }
+    .jwt-io-cta .cta-text { font-size: 12px; color: var(--text-dim); line-height: 1.5; flex: 1; }
+    .jwt-io-cta .cta-text strong { color: var(--text); }
+
+    /* ── OAuth sub-diagram ── */
+    .oauth-flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0;
+      padding: 8px 0;
+      margin: 12px 0;
+    }
+    .oauth-step {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 10px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .oauth-step.danger-step { background: rgba(255, 71, 87, 0.15); border-color: rgba(255, 71, 87, 0.3); color: #ff8a94; }
+    .oauth-arrow { color: var(--text-dim); font-size: 14px; padding: 0 3px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .header { padding: 14px 16px; }
+      .section-nav { padding: 0 16px; }
+      .container { padding: 0 14px; }
+      .heatmap-grid { grid-template-columns: 1fr; }
+      .future-grid { grid-template-columns: 1fr; }
+      .glossary-grid { columns: 1; }
+      .flow { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+      .attack-chain { flex-direction: column; }
+      .stage-arrow { transform: rotate(90deg); justify-content: center; padding: 4px 0; }
+      .timeline-bar { flex-direction: column; }
+      .handoff-zone { width: auto; border-left: none; border-right: none; border-top: 2px dashed rgba(177, 151, 252, 0.4); border-bottom: 2px dashed rgba(177, 151, 252, 0.4); }
+      .hero h2 { font-size: 20px; }
+      .section-nav a { font-size: 10px; padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <div class="header">
+    <h1><span id="header-icon">&#127850;</span> CookieJar Lab</h1>
+    <div class="header-right">
+      <a href="/dashboard.html" class="nav-link disabled" data-nav="dashboard" id="nav-dashboard">Dashboard</a>
+      <a href="/cookie-vault.html" class="nav-link disabled" data-nav="cookie-vault" data-vuln-only id="nav-vault">Cookie Vault</a>
+      <a href="/attack-console.html" class="nav-link" data-nav="attack-console" id="nav-attack">Attack Console</a>
+      <a href="/explainer.html" class="nav-link active" data-nav="learn">Learn</a>
+      <a href="/concepts.html" class="nav-link" data-nav="concepts">Concepts</a>
+      <span class="app-badge" id="app-badge">Vulnerable App</span>
+      <a href="/index.html" class="nav-auth-btn login-btn" id="nav-login">Login</a>
+      <button class="nav-auth-btn logout-btn" id="nav-logout" style="display:none;" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- ── Section nav ── -->
+  <nav class="section-nav" id="section-nav">
+    <a href="#hero">Intro</a>
+    <a href="#how-login">Login Flow</a>
+    <a href="#cookie-anatomy">Cookie Anatomy</a>
+    <a href="#jwt-dive">JWT Explorer</a>
+    <a href="#flags-heatmap">Cookie Flags</a>
+    <a href="#attack-chain">Attack Chain</a>
+    <a href="#auth-vs-session">Auth vs Session</a>
+    <a href="#defense">Defense in Depth</a>
+    <a href="#beyond">Beyond This Lab</a>
+    <a href="#glossary">Glossary</a>
+  </nav>
+
+  <div class="container">
+
+    <!-- ══════ 1. HERO ══════ -->
+    <div class="hero section" id="hero">
+      <h2>Session Security  - An <em>Interactive</em> Guide</h2>
+      <p class="sub">From first principles to defense in depth. Click any highlighted area to explore.</p>
+      <div id="status-pill" class="status-pill logged-out">Checking session...</div>
+      <div class="hero-meta">~12 min read &middot; <a href="/index.html">Hands-on lab exercises</a></div>
+    </div>
+
+    <!-- ══════ 2. HOW LOGIN WORKS ══════ -->
+    <div class="section" id="how-login">
+      <h2 class="section-title">How Login Works</h2>
+      <p class="section-subtitle">Every login flow  - password, TOTP, OAuth  - ends the same way: the server issues a session cookie. Click each step to learn more.</p>
+
+      <div class="flow">
+        <div class="flow-node" onclick="toggleFlow(0)" id="flow-0">
+          <div class="icon">&#128100;</div>
+          You
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node" onclick="toggleFlow(1)" id="flow-1">
+          <div class="icon">&#128272;</div>
+          Credentials
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node" onclick="toggleFlow(2)" id="flow-2">
+          <div class="icon">&#9989;</div>
+          Server Verifies
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node" onclick="toggleFlow(3)" id="flow-3">
+          <div class="icon">&#127850;</div>
+          Cookie Issued
+        </div>
+      </div>
+
+      <div class="expand-panel" id="flow-panel-0">
+        <strong>You  - the user.</strong> You open a login page in your browser. You're about to prove your identity using one of many methods: a password, a TOTP code, a fingerprint, or Google OAuth. At this stage, you have no session  - the server doesn't know who you are.
+      </div>
+      <div class="expand-panel" id="flow-panel-1">
+        <strong>Credentials  - what you provide.</strong> This could be a username + password, a 6-digit TOTP code from your authenticator app, or clicking "Sign in with Google." Each method proves your identity differently, but they all feed into the same next step: server-side verification. <span id="flow-1-live"></span>
+      </div>
+      <div class="expand-panel" id="flow-panel-2">
+        <strong>Server Verifies  - authentication happens here.</strong> The server checks your credentials against its database (password hash, TOTP secret, or OAuth token exchange with Google). If everything matches, you're authenticated. This is the only moment your password/2FA/OAuth matters.
+      </div>
+      <div class="expand-panel" id="flow-panel-3">
+        <strong>Session Cookie Issued  - the critical moment.</strong> After verification, the server creates a session token (usually a JWT) and sends it back as a cookie. From now on, the browser sends this cookie with every request. The server never asks for your password again  - the cookie IS your identity. <span id="flow-3-live"></span>
+      </div>
+
+      <div class="callout callout-info">
+        <strong>Hotel key card analogy:</strong> Logging in is like showing your ID at the hotel front desk. The session cookie is the key card they hand you. Anyone who holds that key card can open your room  - they don't need your ID.
+      </div>
+    </div>
+
+    <!-- ══════ 3. COOKIE ANATOMY ══════ -->
+    <div class="section" id="cookie-anatomy">
+      <h2 class="section-title">What's Inside a Cookie</h2>
+      <p class="section-subtitle">A cookie is just a name-value pair with metadata. Click below to see where browsers store them on disk.</p>
+
+      <div class="card">
+        <h3>&#127850; Cookie Anatomy</h3>
+        <div class="cookie-anatomy" id="cookie-anatomy-data">
+          <div class="cookie-field"><span class="key">name</span><span class="val" id="ca-name">session</span></div>
+          <div class="cookie-field"><span class="key">value</span><span class="val" id="ca-value" style="font-size:10px;">eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySW...&lt;truncated&gt;</span></div>
+          <div class="cookie-field"><span class="key">domain</span><span class="val" id="ca-domain">localhost</span></div>
+          <div class="cookie-field"><span class="key">path</span><span class="val">/</span></div>
+          <div class="cookie-field"><span class="key">httpOnly</span><span class="val" id="ca-httponly">false</span></div>
+          <div class="cookie-field"><span class="key">secure</span><span class="val" id="ca-secure">false</span></div>
+          <div class="cookie-field"><span class="key">sameSite</span><span class="val" id="ca-samesite">None</span></div>
+          <div class="cookie-field"><span class="key">maxAge</span><span class="val" id="ca-maxage">7 days</span></div>
+        </div>
+
+        <div id="docCookie-demo" style="margin-top:14px; padding:12px; background:var(--bg); border-radius:6px; font-size:12px;">
+          <span style="color:var(--text-dim);">document.cookie =</span> <span id="docCookie-val" style="color:var(--accent-2);">"loading..."</span>
+        </div>
+      </div>
+
+      <div style="margin-top:8px;">
+        <button class="btn btn-surface" onclick="togglePanel('disk-paths')">Where cookies live on disk</button>
+      </div>
+      <div class="expand-panel" id="disk-paths">
+        <strong>Browser cookie store locations (SQLite databases):</strong><br><br>
+        <strong>Chrome (macOS):</strong> <code>~/Library/Application Support/Google/Chrome/Default/Cookies</code><br>
+        <strong>Chrome (Windows):</strong> <code>%LOCALAPPDATA%\Google\Chrome\User Data\Default\Cookies</code><br>
+        <strong>Chrome (Linux):</strong> <code>~/.config/google-chrome/Default/Cookies</code><br>
+        <strong>Firefox:</strong> <code>&lt;profile&gt;/cookies.sqlite</code><br><br>
+        Infostealers like RedLine, Raccoon, and Vidar read these SQLite files directly  - no browser interaction needed. They don't need your password or 2FA, just file system access.
+      </div>
+    </div>
+
+    <!-- ══════ 4. JWT DEEP DIVE ══════ -->
+    <div class="section" id="jwt-dive">
+      <h2 class="section-title">JWT Deep Dive</h2>
+      <p class="section-subtitle">A JSON Web Token has three parts separated by dots. Click each colored band to decode it.</p>
+
+      <div class="card">
+        <h3>&#128270; Interactive JWT Explorer</h3>
+
+        <div class="jwt-band jwt-header-band" onclick="toggleJwt('header')" id="jwt-band-header">
+          <div class="jwt-band-label">Header</div>
+          <div class="jwt-band-value" id="jwt-raw-header">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</div>
+        </div>
+        <div class="jwt-expand" id="jwt-expand-header">
+          <div class="jwt-expand-inner">
+            <strong>Decoded Header:</strong>
+            <pre id="jwt-decoded-header">{ "alg": "HS256", "typ": "JWT" }</pre>
+            <strong>alg</strong>  - the signing algorithm. HS256 means HMAC-SHA256, a symmetric algorithm where the server uses a single secret key to both create and verify signatures.<br>
+            <strong>typ</strong>  - declares this is a JWT. Helps parsers identify the token format.
+          </div>
+        </div>
+
+        <div class="jwt-band jwt-payload-band" onclick="toggleJwt('payload')" id="jwt-band-payload">
+          <div class="jwt-band-label">Payload</div>
+          <div class="jwt-band-value" id="jwt-raw-payload">eyJ1c2VySWQiOiJ1XzEyMyIsInVzZXJuYW1lIjoiYWxpY2UiLC...&lt;click to decode&gt;</div>
+        </div>
+        <div class="jwt-expand" id="jwt-expand-payload">
+          <div class="jwt-expand-inner">
+            <strong>Decoded Payload:</strong>
+            <pre id="jwt-decoded-payload">{
+  "userId": "u_abc123",
+  "username": "alice",
+  "email": "alice@example.com",
+  "authMethod": "password-totp",
+  "iat": 1711500000,
+  "exp": 1712104800
+}</pre>
+            <div id="jwt-payload-annotations">
+              <strong>userId</strong>  - unique identifier for the user account<br>
+              <strong>username</strong>  - the display name<br>
+              <strong>email</strong>  - account email address<br>
+              <strong>authMethod</strong>  - how the user logged in (password-totp or google-oauth)<br>
+              <strong>iat</strong>  - "issued at"  - Unix timestamp of when this token was created<br>
+              <strong>exp</strong>  - "expires"  - Unix timestamp of when this token becomes invalid
+            </div>
+          </div>
+        </div>
+
+        <div class="jwt-band jwt-sig-band" onclick="toggleJwt('signature')" id="jwt-band-signature">
+          <div class="jwt-band-label">Signature</div>
+          <div class="jwt-band-value" id="jwt-raw-sig">SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV...&lt;click to learn&gt;</div>
+        </div>
+        <div class="jwt-expand" id="jwt-expand-signature">
+          <div class="jwt-expand-inner">
+            <strong>How the signature works:</strong><br>
+            The server takes the Base64URL-encoded header and payload, concatenates them with a dot, and runs HMAC-SHA256 using a secret key. The result is the signature.<br><br>
+            <code>HMAC-SHA256(base64url(header) + "." + base64url(payload), secret)</code><br><br>
+            <strong>The signature verifies integrity, not confidentiality.</strong> Anyone can decode the header and payload  - they're just Base64URL encoded, not encrypted. The signature only proves the token hasn't been tampered with.
+          </div>
+        </div>
+
+        <div class="callout callout-danger" style="margin-top:16px;">
+          <strong>Myth busted:</strong> JWTs are NOT encrypted  - anyone can decode the header and payload. The signature only proves the token wasn't tampered with. Treat JWT contents as public information.
+        </div>
+
+        <div class="jwt-io-cta">
+          <div class="cta-text">
+            <strong>Explore it yourself:</strong> Paste this token into <a href="https://jwt.io" target="_blank" rel="noopener" style="color:var(--blue);">jwt.io</a> to see the decoded parts interactively. You'll see "Invalid Signature"  - that's expected because jwt.io doesn't have the server's secret key.
+          </div>
+          <button class="btn btn-copy" id="jwt-copy-btn" onclick="copyJwt()">Copy JWT</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ 5. COOKIE FLAGS HEATMAP ══════ -->
+    <div class="section" id="flags-heatmap">
+      <h2 class="section-title">Cookie Flags Heatmap</h2>
+      <p class="section-subtitle">Side-by-side comparison of how each app configures its session cookie. Red = insecure. Green = secure. Click any flag to learn more.</p>
+
+      <div class="heatmap-grid">
+        <!-- Vulnerable -->
+        <div class="heatmap-card vuln-card">
+          <h4>&#127850; Vulnerable App (port 3001)</h4>
+
+          <div class="flag-bar insecure" onclick="toggleFlag('v-httponly')">
+            httpOnly <span class="flag-val">false</span>
+          </div>
+          <div class="flag-detail" id="v-httponly"><div class="flag-detail-inner">
+            <strong>httpOnly: false</strong> means JavaScript can read this cookie via <code>document.cookie</code>. Any script running on the page  - including XSS payloads or browser extensions  - can steal the session token. The vulnerable app intentionally leaves this off to demonstrate the risk.
+          </div></div>
+
+          <div class="flag-bar insecure" onclick="toggleFlag('v-secure')">
+            secure <span class="flag-val">false</span>
+          </div>
+          <div class="flag-detail" id="v-secure"><div class="flag-detail-inner">
+            <strong>secure: false</strong> means the cookie is sent over both HTTP and HTTPS. On an unencrypted HTTP connection, the cookie travels in plaintext and can be intercepted by anyone on the network (coffee shop WiFi, ISP, etc.).<br><br>
+            <strong>Myth busted:</strong> The <code>secure</code> flag protects the cookie <em>in transit</em> (the wire), not <em>at rest</em> (the cookie store). An infostealer reads the cookie from disk  - HTTPS doesn't help against that.
+          </div></div>
+
+          <div class="flag-bar insecure" onclick="toggleFlag('v-samesite')">
+            sameSite <span class="flag-val">None</span>
+          </div>
+          <div class="flag-detail" id="v-samesite"><div class="flag-detail-inner">
+            <strong>sameSite: None</strong> means the cookie is sent with all cross-site requests. A malicious site could trigger requests to this app and the browser would attach the session cookie  - enabling CSRF attacks. This is the least restrictive setting.
+          </div></div>
+
+          <div class="flag-bar insecure" onclick="toggleFlag('v-maxage')">
+            maxAge <span class="flag-val">7 days</span>
+          </div>
+          <div class="flag-detail" id="v-maxage"><div class="flag-detail-inner">
+            <strong>maxAge: 7 days</strong> means a stolen token remains valid for up to a week. That's a huge window for an attacker. Even if the user changes their password, the stolen token continues to work because sessions are stateless  - the server only checks the JWT signature, not a session store.
+          </div></div>
+        </div>
+
+        <!-- Hardened -->
+        <div class="heatmap-card hard-card">
+          <h4>&#128274; Hardened App (port 3002)</h4>
+
+          <div class="flag-bar secure" onclick="toggleFlag('h-httponly')">
+            httpOnly <span class="flag-val">true</span>
+          </div>
+          <div class="flag-detail" id="h-httponly"><div class="flag-detail-inner">
+            <strong>httpOnly: true</strong> prevents JavaScript from reading the cookie. <code>document.cookie</code> returns an empty string. This blocks XSS-based cookie theft and simple browser extension attacks. However, it does NOT stop infostealers that read the cookie database file directly from disk.
+          </div></div>
+
+          <div class="flag-bar secure" onclick="toggleFlag('h-secure')">
+            secure <span class="flag-val">true</span>
+          </div>
+          <div class="flag-detail" id="h-secure"><div class="flag-detail-inner">
+            <strong>secure: true</strong> ensures the cookie is only sent over HTTPS connections. Combined with TLS, this protects the cookie from network-level eavesdropping. The cookie cannot be intercepted on the wire.<br><br>
+            <strong>Remember:</strong> This protects transmission, not storage. A disk-based infostealer bypasses this entirely.
+          </div></div>
+
+          <div class="flag-bar secure" onclick="toggleFlag('h-samesite')">
+            sameSite <span class="flag-val">Strict</span>
+          </div>
+          <div class="flag-detail" id="h-samesite"><div class="flag-detail-inner">
+            <strong>sameSite: Strict</strong> means the cookie is only sent with same-site requests. If you click a link to this app from another site, the cookie won't be included in the first request. This effectively eliminates CSRF attacks.
+          </div></div>
+
+          <div class="flag-bar secure" onclick="toggleFlag('h-maxage')">
+            maxAge <span class="flag-val">15 minutes</span>
+          </div>
+          <div class="flag-detail" id="h-maxage"><div class="flag-detail-inner">
+            <strong>maxAge: 15 minutes</strong> drastically limits the replay window. Even if a token is stolen, it's only valid for a short time. The hardened app uses <strong>refresh token rotation</strong>  - a new access token is issued every ~13 minutes, and each refresh token can only be used once. If an attacker tries to use an old refresh token, all sessions are invalidated.
+          </div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ 6. THE ATTACK ══════ -->
+    <div class="section" id="attack-chain">
+      <h2 class="section-title">The Attack  - How Session Theft Works</h2>
+      <p class="section-subtitle">A 5-stage attack chain. Click each stage to see what happens, what the attacker sees, and which defenses apply.</p>
+
+      <div class="attack-chain">
+        <div class="attack-stage attack-stage-1" onclick="toggleAttack(0)" id="atk-0">
+          <div class="stage-num">Stage 1</div>
+          <div class="stage-icon">&#128100;</div>
+          <div class="stage-label">Victim Logs In</div>
+        </div>
+        <div class="stage-arrow">&rarr;</div>
+        <div class="attack-stage attack-stage-2" onclick="toggleAttack(1)" id="atk-1">
+          <div class="stage-num">Stage 2</div>
+          <div class="stage-icon">&#127850;</div>
+          <div class="stage-label">Cookie Stored</div>
+        </div>
+        <div class="stage-arrow">&rarr;</div>
+        <div class="attack-stage attack-stage-3" onclick="toggleAttack(2)" id="atk-2">
+          <div class="stage-num">Stage 3</div>
+          <div class="stage-icon">&#128375;</div>
+          <div class="stage-label">Infostealer Runs</div>
+        </div>
+        <div class="stage-arrow">&rarr;</div>
+        <div class="attack-stage attack-stage-4" onclick="toggleAttack(3)" id="atk-3">
+          <div class="stage-num">Stage 4</div>
+          <div class="stage-icon">&#128228;</div>
+          <div class="stage-label">Cookie Exfiltrated</div>
+        </div>
+        <div class="stage-arrow">&rarr;</div>
+        <div class="attack-stage attack-stage-5" onclick="toggleAttack(4)" id="atk-4">
+          <div class="stage-num">Stage 5</div>
+          <div class="stage-icon">&#128128;</div>
+          <div class="stage-label">Attacker Replays</div>
+        </div>
+      </div>
+
+      <div class="expand-panel" id="atk-panel-0">
+        <strong>Stage 1: Victim logs in legitimately.</strong><br>
+        The victim enters their username, password, and TOTP code  - or clicks "Sign in with Google." The server verifies their identity. At this stage, everything is secure. The authentication step worked exactly as designed.<br><br>
+        <strong>Attacker's view:</strong> Nothing yet. The attacker doesn't need to be present during login.<br>
+        <strong>Defenses here:</strong> MFA, OAuth, and strong passwords all protect this step  - but they're about to become irrelevant.<br>
+        <span id="atk-0-live"></span>
+      </div>
+      <div class="expand-panel" id="atk-panel-1">
+        <strong>Stage 2: Cookie stored in the browser.</strong><br>
+        The server sends a <code>Set-Cookie</code> header. The browser stores the session token in its cookie database  - an SQLite file on disk. From now on, every request to this server includes the cookie automatically.<br><br>
+        <strong>Attacker's view:</strong> Still nothing  - but the attack surface just appeared. The cookie now exists on disk.<br>
+        <strong>Defenses:</strong> httpOnly prevents JS access. But the on-disk file is still readable by any process with file system access.<br>
+        <span id="atk-1-live"></span>
+      </div>
+      <div class="expand-panel" id="atk-panel-2">
+        <strong>Stage 3: Infostealer malware executes.</strong><br>
+        Delivered via phishing, a trojanized download, or a malicious browser extension. The malware reads the browser's cookie database file directly from disk. This typically takes less than a second.<br><br>
+        <strong>Two attack vectors:</strong>
+        <div style="margin:12px 0; display:flex; gap:10px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:200px; padding:10px; background:rgba(255,71,87,0.08); border:1px solid rgba(255,71,87,0.2); border-radius:6px;">
+            <strong style="color:#ff8a94;">Vector A: Disk-based theft</strong><br>
+            Reads the SQLite cookie database file. Bypasses httpOnly entirely  - httpOnly only restricts JavaScript, not file system access.
+          </div>
+          <div id="vector-b-card" style="flex:1; min-width:200px; padding:10px; background:rgba(255,163,107,0.08); border:1px solid rgba(255,163,107,0.2); border-radius:6px;">
+            <strong style="color:#ffa36b;">Vector B: JavaScript theft</strong><br>
+            Uses <code>document.cookie</code> via XSS or malicious extension. <span id="vector-b-note">Blocked by httpOnly on the hardened app.</span>
+          </div>
+        </div>
+      </div>
+      <div class="expand-panel" id="atk-panel-3">
+        <strong>Stage 4: Cookie exfiltrated to attacker's C2 server.</strong><br>
+        The stolen cookies are sent to the attacker's command-and-control (C2) server. This happens in seconds, often before the user notices anything. The data package typically includes: session cookies, stored passwords, browser history, and autofill data.<br><br>
+        <strong>Attacker's view:</strong> They now have the exact same session token that the victim's browser is using.<br>
+        <strong>Defenses:</strong> Short token expiry limits the window. Device binding means the token may fail from a different IP/User-Agent. But on the vulnerable app  - 7 days and no binding.<br>
+        <span id="atk-3-live"></span>
+      </div>
+      <div class="expand-panel" id="atk-panel-4">
+        <strong>Stage 5: Attacker replays the stolen cookie.</strong><br>
+        The attacker injects the stolen session token into their own browser (or uses curl/Postman). The server receives the cookie, checks the JWT signature  - it's valid  - and grants full access. No password. No 2FA. No OAuth. Just the cookie.<br><br>
+        <strong>Attacker's view:</strong> Full access to the victim's account. They ARE the user as far as the server is concerned.<br>
+        <strong>Defenses (hardened app):</strong> Server-side session check fails (unknown session ID), device binding fails (wrong IP/UA), and the token likely expired within 15 minutes. Multiple layers block replay.
+      </div>
+    </div>
+
+    <!-- ══════ 7. WHY STRONG AUTH DOESN'T HELP ══════ -->
+    <div class="section" id="auth-vs-session">
+      <h2 class="section-title">Why Strong Auth Doesn't Help</h2>
+      <p class="section-subtitle">Authentication and sessions are two different phases. Click each zone to understand the handoff.</p>
+
+      <div class="timeline-bar">
+        <div class="timeline-zone auth-zone" onclick="toggleTimeline('auth')" id="tz-auth">
+          <h4>&#128272; Authentication</h4>
+          <p>Password, TOTP, OAuth happen here</p>
+        </div>
+        <div class="timeline-zone handoff-zone" onclick="toggleTimeline('handoff')" id="tz-handoff">
+          <h4>&rarr;</h4>
+          <p style="font-size:9px;">The Handoff</p>
+        </div>
+        <div class="timeline-zone session-zone" onclick="toggleTimeline('session')" id="tz-session">
+          <h4>&#127850; Session</h4>
+          <p>Cookie-based access happens here</p>
+        </div>
+      </div>
+
+      <div class="expand-panel" id="tz-panel-auth">
+        <strong>The Authentication zone</strong> is where identity is verified. This is where strong security lives: passwords are hashed, TOTP codes are time-limited, OAuth delegates to Google. Multi-factor authentication (MFA) makes this zone very strong  - an attacker can't easily fake your identity here.<br><br>
+        <span id="tz-auth-live"></span>
+        <strong>But here's the problem:</strong> authentication only happens <em>once</em> per session. After that, the server relies entirely on the session token.
+      </div>
+      <div class="expand-panel" id="tz-panel-handoff">
+        <strong>The Handoff  - the critical moment.</strong><br>
+        After successful authentication, the server creates a session token and sends it as a cookie. This is where all your authentication effort gets compressed into a single string. The token carries your identity forward  - whoever holds it IS you.<br><br>
+        <strong>The core insight:</strong> Authentication protects the login. It does NOT protect the session. These are different security boundaries, and infostealers attack the session, not the login.
+      </div>
+      <div class="expand-panel" id="tz-panel-session">
+        <strong>The Session zone</strong> is where the user spends 99.9% of their time. Every page load, every API call, every action sends the session cookie. The server checks: "Is this a valid, non-expired token?" If yes, access is granted. It never re-checks the password or 2FA code.<br><br>
+        This is the attacker's target. They skip the authentication zone entirely and operate in the session zone with a stolen cookie.
+      </div>
+
+      <div style="margin-top:12px;">
+        <button class="btn btn-surface" onclick="togglePanel('oauth-sub')">See the OAuth flow diagram</button>
+      </div>
+      <div class="expand-panel" id="oauth-sub">
+        <strong>OAuth 2.0 flow  - where does Google's protection end?</strong>
+        <div class="oauth-flow">
+          <div class="oauth-step">User</div><div class="oauth-arrow">&rarr;</div>
+          <div class="oauth-step">App</div><div class="oauth-arrow">&rarr;</div>
+          <div class="oauth-step">Google</div><div class="oauth-arrow">&rarr;</div>
+          <div class="oauth-step">Consent</div><div class="oauth-arrow">&rarr;</div>
+          <div class="oauth-step">Auth Code</div><div class="oauth-arrow">&rarr;</div>
+          <div class="oauth-step">App exchanges code</div><div class="oauth-arrow">&rarr;</div>
+          <div class="oauth-step danger-step">App issues OWN cookie</div>
+        </div>
+        <strong style="color:#ff8a94;">Step 7 is where OAuth stops protecting you.</strong> Google verified your identity. But the session cookie was issued by <em>this app</em>, not Google. Google doesn't control, monitor, or protect this cookie. An infostealer steals the app's cookie  - Google never knows.
+      </div>
+    </div>
+
+    <!-- ══════ 8. DEFENSE IN DEPTH ══════ -->
+    <div class="section" id="defense">
+      <h2 class="section-title">Defense in Depth</h2>
+      <p class="section-subtitle">Five layers of defense, stacked. Each layer blocks attacks that bypass the one below it. Toggle between perspectives.</p>
+
+      <div class="defense-toggle">
+        <button class="active" onclick="setDefenseView('hardened')" id="def-btn-hardened">Hardened App</button>
+        <button onclick="setDefenseView('vulnerable')" id="def-btn-vulnerable">Vulnerable App</button>
+      </div>
+
+      <div class="defense-stack" id="defense-stack">
+        <div class="defense-layer" onclick="toggleDefense(4)" id="def-4">
+          <span class="layer-num">Layer 5</span>
+          &#128203; Audit Logging
+          <span class="layer-status" id="def-4-status"></span>
+        </div>
+        <div class="expand-panel" id="def-panel-4">
+          <strong>Audit Logging</strong> records every session event: logins, logouts, token refreshes, and  - critically  - replay attempts. It doesn't prevent attacks, but it enables detection and incident response.<br><br>
+          <strong>What it blocks:</strong> Nothing directly  - it's a detection control.<br>
+          <strong>What it enables:</strong> SOC/SIEM alerts on anomalous session activity, forensic analysis after a breach.<br>
+          <strong>Analogy:</strong> Security cameras don't stop a break-in, but they let you catch the intruder and understand what happened.
+        </div>
+
+        <div class="defense-layer" onclick="toggleDefense(3)" id="def-3">
+          <span class="layer-num">Layer 4</span>
+          &#128271; Device Binding
+          <span class="layer-status" id="def-3-status"></span>
+        </div>
+        <div class="expand-panel" id="def-panel-3">
+          <strong>Device Binding</strong> ties the session to the specific device that logged in, using the client's IP address and User-Agent string. If a stolen token is replayed from a different machine, the server detects the mismatch and rejects the request.<br><br>
+          <strong>What it blocks:</strong> Session replay from a different network/device.<br>
+          <strong>What it doesn't block:</strong> Replay from the same network (e.g., malware on the victim's machine replaying locally). Also, VPNs can make IP binding unreliable.<br>
+          <strong>Analogy:</strong> Like a parking permit that includes your license plate number  - the permit only works on your car.
+        </div>
+
+        <div class="defense-layer" onclick="toggleDefense(2)" id="def-2">
+          <span class="layer-num">Layer 3</span>
+          &#128451; Server-Side Store
+          <span class="layer-status" id="def-2-status"></span>
+        </div>
+        <div class="expand-panel" id="def-panel-2">
+          <strong>Server-Side Session Store</strong> keeps a record of active sessions on the server. Each session has a unique ID that must exist in the store for the JWT to be valid. This enables immediate revocation  - logging out actually invalidates the token, unlike stateless JWTs.<br><br>
+          <strong>What it blocks:</strong> Session use after logout, revoked sessions, tokens from deleted accounts.<br>
+          <strong>What it doesn't block:</strong> Replay with a currently valid, non-revoked session from a matching device.<br>
+          <strong>Analogy:</strong> Like a guest list at a building entrance  - having a badge isn't enough; your name must be on the active list.
+        </div>
+
+        <div class="defense-layer" onclick="toggleDefense(1)" id="def-1">
+          <span class="layer-num">Layer 2</span>
+          &#9200; Short Expiry
+          <span class="layer-status" id="def-1-status"></span>
+        </div>
+        <div class="expand-panel" id="def-panel-1">
+          <strong>Short Token Expiry (15 minutes)</strong> limits the window of opportunity for an attacker. Even if they steal a token, it becomes useless quickly. Combined with <strong>refresh token rotation</strong>: a new access token is issued every ~13 minutes. Each refresh token is single-use  - if an attacker tries to reuse an old one, all sessions for that user are invalidated.<br><br>
+          <strong>What it blocks:</strong> Attacks that take longer than 15 minutes to execute (which is most real-world scenarios).<br>
+          <strong>What it doesn't block:</strong> Automated, near-instant replay attacks within the 15-minute window.<br>
+          <strong>Analogy:</strong> Like a visitor pass that expires after 15 minutes  - the guard won't let you in with yesterday's pass.
+        </div>
+
+        <div class="defense-layer" onclick="toggleDefense(0)" id="def-0">
+          <span class="layer-num">Layer 1</span>
+          &#128274; httpOnly
+          <span class="layer-status" id="def-0-status"></span>
+        </div>
+        <div class="expand-panel" id="def-panel-0">
+          <strong>httpOnly</strong> prevents JavaScript from accessing the cookie via <code>document.cookie</code>. This blocks XSS attacks and malicious browser extensions from reading the session token. It's the first line of defense and the easiest to implement.<br><br>
+          <strong>What it blocks:</strong> JavaScript-based cookie theft (XSS, browser extensions, injected scripts).<br>
+          <strong>What it doesn't block:</strong> Disk-based theft. Infostealers read the SQLite cookie database file  - httpOnly doesn't protect file system access. This is why defense in depth matters.<br>
+          <strong>Analogy:</strong> Like a "staff only" sign on a door  - it stops casual visitors but not someone with a master key.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ 9. BEYOND THIS LAB ══════ -->
+    <div class="section" id="beyond">
+      <h2 class="section-title">Beyond This Lab</h2>
+      <p class="section-subtitle">Emerging and advanced defenses that go beyond traditional session management.</p>
+
+      <div class="future-grid">
+        <div class="future-card" onclick="toggleFuture(this)">
+          <h4>&#128274; DBSC (Device Bound Session Credentials)</h4>
+          <p>Chrome proposal to cryptographically bind sessions to hardware.</p>
+          <div class="expand-detail">
+            <div class="expand-detail-inner">
+              DBSC uses the device's TPM (Trusted Platform Module) to create a key pair. The session is bound to the private key, which never leaves the hardware. A stolen cookie is useless without the private key.<br><br>
+              <a href="https://github.com/nicowillis/dbsc" target="_blank" rel="noopener">DBSC Chrome Proposal</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="future-card" onclick="toggleFuture(this)">
+          <h4>&#128279; Token Binding</h4>
+          <p>Cryptographically binds tokens to TLS connections.</p>
+          <div class="expand-detail">
+            <div class="expand-detail-inner">
+              Token Binding (RFC 8471) ties authentication tokens to the TLS connection. Even if a token is stolen, it can't be replayed on a different TLS connection. Requires browser and server support.<br><br>
+              <a href="https://datatracker.ietf.org/doc/html/rfc8471" target="_blank" rel="noopener">RFC 8471  - Token Binding Protocol</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="future-card" onclick="toggleFuture(this)">
+          <h4>&#128273; FIDO2 / Passkeys</h4>
+          <p>Phishing-resistant, device-bound authentication.</p>
+          <div class="expand-detail">
+            <div class="expand-detail-inner">
+              FIDO2 and Passkeys use public-key cryptography tied to a specific device. There's no password to steal and no cookie to replay during authentication. However, the application still needs to issue a session after FIDO2 auth  - that session can still be stolen. FIDO2 solves the authentication problem, not the session problem.<br><br>
+              <a href="https://fidoalliance.org/fido2/" target="_blank" rel="noopener">FIDO Alliance  - FIDO2</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="future-card" onclick="toggleFuture(this)">
+          <h4>&#127919; Zero Trust</h4>
+          <p>Continuous verification, never trust the session alone.</p>
+          <div class="expand-detail">
+            <div class="expand-detail-inner">
+              Zero Trust architectures continuously evaluate risk signals: device health, network location, user behavior patterns, and more. Instead of trusting a session token for its entire lifetime, every request is evaluated against current risk. Anomalous behavior triggers step-up authentication or session termination.<br><br>
+              <a href="https://www.nist.gov/publications/zero-trust-architecture" target="_blank" rel="noopener">NIST SP 800-207  - Zero Trust Architecture</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ 10. GLOSSARY ══════ -->
+    <div class="section" id="glossary">
+      <h2 class="section-title">Glossary</h2>
+      <p class="section-subtitle">Quick reference for terms used throughout this guide. Type to filter.</p>
+
+      <input type="text" class="glossary-search" id="glossary-search" placeholder="Search terms..." oninput="filterGlossary()">
+
+      <div class="glossary-grid" id="glossary-grid">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <div style="text-align:center; padding:40px 0; font-size:11px; color:var(--text-dim);">
+      CookieJar Lab &middot; Educational purposes only &middot; <a href="/index.html" style="color:var(--blue); text-decoration:none;">Back to Lab</a>
+    </div>
+  </div>
+
+  <script>
+    /* ══════════════════════════════════════
+       STATE & DATA
+       ══════════════════════════════════════ */
+    let isLoggedIn = false;
+    let isVulnerable = true;
+    let sessionData = null;
+    let rawJwt = '';
+    let defenseView = 'hardened';
+
+    const DEMO_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1X2FiYzEyMyIsInVzZXJuYW1lIjoiYWxpY2UiLCJlbWFpbCI6ImFsaWNlQGV4YW1wbGUuY29tIiwiYXV0aE1ldGhvZCI6InBhc3N3b3JkLXRvdHAiLCJ0b3RwVmVyaWZpZWQiOnRydWUsImlhdCI6MTcxMTUwMDAwMCwiZXhwIjoxNzEyMTA0ODAwfQ.dGhpc19pc19hX2RlbW9fc2lnbmF0dXJlX25vdF9yZWFs';
+
+    /* ── Glossary Data ── */
+    const glossaryTerms = [
+      { term: 'Access Token', def: 'A credential (often a JWT) that grants access to protected resources. Typically short-lived and issued after authentication.' },
+      { term: 'Authentication', def: 'The process of verifying a user\'s identity  - proving they are who they claim to be. Happens at login time.' },
+      { term: 'Authorization Code', def: 'A short-lived code exchanged between the OAuth provider and the application to obtain access tokens, without exposing credentials to the browser.' },
+      { term: 'Base64URL', def: 'A URL-safe variant of Base64 encoding. Used in JWTs to encode the header and payload. It is encoding, NOT encryption  - anyone can decode it.' },
+      { term: 'C2 Server', def: 'Command and Control server  - the attacker\'s remote infrastructure that receives stolen data (cookies, passwords) from infostealer malware.' },
+      { term: 'Certificate Authority', def: 'A trusted organization that issues digital certificates used to verify the identity of websites (TLS/HTTPS). mkcert creates a local CA for development.' },
+      { term: 'Cookie', def: 'A small piece of data stored by the browser and sent with every HTTP request to the matching domain. Used for session management, preferences, and tracking.' },
+      { term: 'CSRF', def: 'Cross-Site Request Forgery  - an attack where a malicious site tricks the user\'s browser into sending authenticated requests to another site. Mitigated by SameSite cookies.' },
+      { term: 'Defense in Depth', def: 'A security strategy that uses multiple layers of defense so that if one fails, others still provide protection. No single control is sufficient.' },
+      { term: 'Device Binding', def: 'Tying a session to specific device characteristics (IP address, User-Agent, hardware keys) so the token can\'t be used from a different machine.' },
+      { term: 'DBSC', def: 'Device Bound Session Credentials  - a Chrome proposal to cryptographically bind sessions to hardware using the TPM, making stolen cookies useless.' },
+      { term: 'FIDO2/Passkeys', def: 'A phishing-resistant authentication standard using public-key cryptography. The private key never leaves the device. Replaces passwords but doesn\'t protect sessions.' },
+      { term: 'HMAC', def: 'Hash-based Message Authentication Code  - a cryptographic function used to verify both data integrity and authenticity. JWTs commonly use HMAC-SHA256.' },
+      { term: 'httpOnly', def: 'A cookie flag that prevents JavaScript from reading the cookie via document.cookie. Blocks XSS-based theft but not disk-based infostealer attacks.' },
+      { term: 'HTTPS', def: 'HTTP Secure  - encrypts communication between browser and server using TLS. Protects data in transit but not at rest (on disk).' },
+      { term: 'Infostealer', def: 'Malware designed to steal stored credentials, cookies, and other sensitive data from a victim\'s browser. Examples: RedLine, Raccoon, Vidar, Lumma.' },
+      { term: 'JWT', def: 'JSON Web Token  - a compact, self-contained token format with three parts: header, payload, and signature. Commonly used for session management. Not encrypted by default.' },
+      { term: 'maxAge', def: 'A cookie attribute that sets how long (in seconds) the cookie remains valid. Shorter values limit the window for session replay attacks.' },
+      { term: 'MFA/2FA', def: 'Multi-Factor / Two-Factor Authentication  - requiring multiple proof-of-identity factors (password + TOTP, biometric, etc.). Protects login but not the session.' },
+      { term: 'OAuth 2.0', def: 'An authorization framework that lets applications request access to user resources from a third party (like Google) without handling the user\'s password directly.' },
+      { term: 'Refresh Token', def: 'A long-lived token used to obtain new access tokens without re-authentication. Rotation means each refresh token is single-use, limiting replay.' },
+      { term: 'sameSite', def: 'A cookie attribute controlling when the cookie is sent with cross-site requests. Values: Strict (same-site only), Lax (safe methods), None (always sent).' },
+      { term: 'Secure Flag', def: 'A cookie attribute that ensures the cookie is only sent over HTTPS connections. Protects against network eavesdropping but not disk-level theft.' },
+      { term: 'Session', def: 'The period of authenticated interaction between a user and a server, maintained by a session token (usually a cookie). Begins at login, ends at logout or expiry.' },
+      { term: 'Session Replay', def: 'An attack where a stolen session token is re-used by an attacker to impersonate the victim. The server cannot distinguish the attacker from the real user.' },
+      { term: 'SIEM', def: 'Security Information and Event Management  - a system that aggregates and analyzes security logs from multiple sources to detect threats and anomalies.' },
+      { term: 'SQLite', def: 'A lightweight, file-based database used by browsers to store cookies, history, and other data. Infostealers read these files directly from disk.' },
+      { term: 'TLS', def: 'Transport Layer Security  - the cryptographic protocol that provides HTTPS. Encrypts data between browser and server. Versions: TLS 1.2, TLS 1.3.' },
+      { term: 'Token Binding', def: 'A protocol (RFC 8471) that cryptographically binds tokens to the TLS connection, preventing replay on different connections.' },
+      { term: 'TOTP', def: 'Time-based One-Time Password  - a 6-digit code generated by an authenticator app that changes every 30 seconds. Used as a second factor in 2FA.' },
+      { term: 'User-Agent', def: 'An HTTP header that identifies the browser and OS. Used in device binding to detect when a session is used from a different browser or machine.' },
+      { term: 'XSS', def: 'Cross-Site Scripting  - an attack where malicious JavaScript is injected into a web page. Can steal cookies if httpOnly is not set.' },
+      { term: 'Zero Trust', def: 'A security model where no user, device, or network is trusted by default. Every request is verified against current risk signals, not just a session token.' },
+    ];
+
+    /* ══════════════════════════════════════
+       INITIALIZATION
+       ══════════════════════════════════════ */
+    async function init() {
+      // Detect app type
+      const port = window.location.port;
+      if (port === '3002') {
+        isVulnerable = false;
+        document.documentElement.style.setProperty('--accent', '#51cf66');
+        document.documentElement.style.setProperty('--accent-2', '#69db7c');
+        document.documentElement.style.setProperty('--header-gradient', 'linear-gradient(135deg, #1a1d27 0%, #1a2d1e 100%)');
+        document.getElementById('header-icon').innerHTML = '&#128274;';
+        document.getElementById('app-badge').textContent = 'Hardened App';
+        document.getElementById('app-badge').className = 'app-badge badge-hard';
+      } else {
+        document.getElementById('app-badge').className = 'app-badge badge-vuln';
+      }
+
+      // Check login status
+      try {
+        const res = await fetch('/api/me');
+        if (res.ok) {
+          sessionData = await res.json();
+          isLoggedIn = true;
+        }
+      } catch (e) {}
+
+      // Populate UI
+      updateStatus();
+      updateNavLinks();
+      populateLiveData();
+      populateJwt();
+      updateDefenseStack();
+      renderGlossary();
+      setupScrollSpy();
+    }
+
+    function updateStatus() {
+      const pill = document.getElementById('status-pill');
+      if (isLoggedIn) {
+        pill.className = 'status-pill logged-in';
+        pill.textContent = 'Logged in as ' + sessionData.user.username + '  - examples use YOUR session data';
+      } else {
+        pill.className = 'status-pill logged-out';
+        pill.textContent = 'Not logged in  - examples use demo data. Log in for live data.';
+      }
+    }
+
+    function updateNavLinks() {
+      // Hide Cookie Vault on hardened app
+      if (!isVulnerable) {
+        document.querySelectorAll('[data-vuln-only]').forEach(el => el.style.display = 'none');
+      }
+      if (isLoggedIn) {
+        // Enable nav links, show logout
+        document.getElementById('nav-dashboard').classList.remove('disabled');
+        const vault = document.getElementById('nav-vault');
+        if (vault && isVulnerable) vault.classList.remove('disabled');
+        document.getElementById('nav-login').style.display = 'none';
+        document.getElementById('nav-logout').style.display = '';
+      }
+    }
+
+    async function logout() {
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.href = '/index.html';
+    }
+
+    function populateLiveData() {
+      if (!isLoggedIn) {
+        // Demo data for cookie anatomy
+        document.getElementById('docCookie-val').textContent = isVulnerable
+          ? '"session=eyJhbGciOiJIUzI1NiJ9..." (readable!)'
+          : '"" (empty  - httpOnly working!)';
+        return;
+      }
+
+      const user = sessionData.user;
+      const session = sessionData.sessionInfo;
+
+      // Cookie anatomy
+      if (isVulnerable) {
+        const cookies = document.cookie;
+        const sessionCookie = cookies.split(';').find(c => c.trim().startsWith('session='));
+        if (sessionCookie) {
+          const val = sessionCookie.split('=').slice(1).join('=');
+          document.getElementById('ca-value').textContent = val.substring(0, 40) + '...';
+          rawJwt = val;
+        }
+        document.getElementById('docCookie-val').textContent = '"session=' + (rawJwt || '...').substring(0, 30) + '..." (readable!)';
+        document.getElementById('ca-httponly').textContent = 'false';
+        document.getElementById('ca-secure').textContent = 'false';
+        document.getElementById('ca-samesite').textContent = 'None';
+        document.getElementById('ca-maxage').textContent = '7 days';
+      } else {
+        document.getElementById('docCookie-val').textContent = '"" (empty  - httpOnly working!)';
+        document.getElementById('ca-httponly').textContent = 'true';
+        document.getElementById('ca-secure').textContent = 'true (production)';
+        document.getElementById('ca-samesite').textContent = 'Strict';
+        document.getElementById('ca-maxage').textContent = '15 minutes';
+      }
+
+      // Flow live data
+      document.getElementById('flow-1-live').innerHTML = '<br><em style="color:var(--accent);">Your auth method: ' + user.authMethod + '</em>';
+      document.getElementById('flow-3-live').innerHTML = '<br><em style="color:var(--accent);">Your session was issued at: ' + new Date(session.issuedAt).toLocaleString() + '</em>';
+
+      // Attack chain live data
+      document.getElementById('atk-0-live').innerHTML = '<br><em style="color:var(--accent);">Your auth: ' + user.authMethod + '</em>';
+      if (rawJwt) {
+        document.getElementById('atk-1-live').innerHTML = '<br><em style="color:var(--accent);">Your cookie value: ' + rawJwt.substring(0, 30) + '...</em>';
+      }
+      document.getElementById('atk-3-live').innerHTML = '<br><em style="color:var(--accent);">Your session expires: ' + new Date(session.expiresAt).toLocaleString() + '</em>';
+
+      // Timeline live data
+      document.getElementById('tz-auth-live').innerHTML = '<em style="color:var(--accent);">You used: ' + user.authMethod + '</em><br>';
+    }
+
+    function populateJwt() {
+      let jwt = DEMO_JWT;
+
+      // On vulnerable app, try to get real JWT from cookie
+      if (isVulnerable && isLoggedIn) {
+        const cookies = document.cookie;
+        const sessionCookie = cookies.split(';').find(c => c.trim().startsWith('session='));
+        if (sessionCookie) {
+          jwt = sessionCookie.split('=').slice(1).join('=');
+        }
+      }
+      rawJwt = jwt;
+
+      const parts = jwt.split('.');
+      if (parts.length === 3) {
+        document.getElementById('jwt-raw-header').textContent = parts[0];
+        document.getElementById('jwt-raw-payload').textContent = parts[1];
+        document.getElementById('jwt-raw-sig').textContent = parts[2];
+
+        try {
+          const header = JSON.parse(atob(parts[0].replace(/-/g,'+').replace(/_/g,'/')));
+          document.getElementById('jwt-decoded-header').textContent = JSON.stringify(header, null, 2);
+        } catch (e) {}
+
+        try {
+          const payload = JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));
+          document.getElementById('jwt-decoded-payload').textContent = JSON.stringify(payload, null, 2);
+
+          // Build annotations
+          let ann = '';
+          for (const [key, val] of Object.entries(payload)) {
+            const descriptions = {
+              userId: 'unique identifier for the user account',
+              username: 'the display name',
+              email: 'account email address',
+              authMethod: 'how the user logged in',
+              totpVerified: 'whether TOTP was verified during login',
+              provider: 'OAuth provider (e.g. google)',
+              iat: '"issued at"  - Unix timestamp (' + new Date(val * 1000).toLocaleString() + ')',
+              exp: '"expires"  - Unix timestamp (' + new Date(val * 1000).toLocaleString() + ')',
+            };
+            ann += '<strong>' + key + '</strong>  - ' + (descriptions[key] || typeof val) + '<br>';
+          }
+          document.getElementById('jwt-payload-annotations').innerHTML = ann;
+        } catch (e) {}
+      }
+    }
+
+    /* ══════════════════════════════════════
+       INTERACTIVE HANDLERS
+       ══════════════════════════════════════ */
+    function toggleFlow(idx) {
+      for (let i = 0; i < 4; i++) {
+        document.getElementById('flow-' + i).classList.toggle('active', i === idx);
+        const panel = document.getElementById('flow-panel-' + i);
+        panel.classList.toggle('open', i === idx && !panel.classList.contains('open') || (i === idx && !document.getElementById('flow-' + idx).classList.contains('active')));
+      }
+      // If re-clicking same node, toggle off
+      const panel = document.getElementById('flow-panel-' + idx);
+      if (!panel.classList.contains('open')) {
+        document.getElementById('flow-' + idx).classList.remove('active');
+      }
+    }
+
+    function toggleJwt(part) {
+      const parts = ['header', 'payload', 'signature'];
+      parts.forEach(p => {
+        const band = document.getElementById('jwt-band-' + p);
+        const expand = document.getElementById('jwt-expand-' + p);
+        if (p === part) {
+          const wasOpen = expand.classList.contains('open');
+          expand.classList.toggle('open');
+          band.classList.toggle('active', !wasOpen);
+        } else {
+          expand.classList.remove('open');
+          band.classList.remove('active');
+        }
+      });
+    }
+
+    function toggleFlag(id) {
+      const el = document.getElementById(id);
+      el.classList.toggle('open');
+    }
+
+    function toggleAttack(idx) {
+      for (let i = 0; i < 5; i++) {
+        const stage = document.getElementById('atk-' + i);
+        const panel = document.getElementById('atk-panel-' + i);
+        if (i === idx) {
+          const wasOpen = panel.classList.contains('open');
+          panel.classList.toggle('open');
+          stage.classList.toggle('active', !wasOpen);
+        } else {
+          panel.classList.remove('open');
+          stage.classList.remove('active');
+        }
+      }
+    }
+
+    function toggleTimeline(zone) {
+      const zones = ['auth', 'handoff', 'session'];
+      zones.forEach(z => {
+        const el = document.getElementById('tz-' + z);
+        const panel = document.getElementById('tz-panel-' + z);
+        if (z === zone) {
+          const wasOpen = panel.classList.contains('open');
+          panel.classList.toggle('open');
+          el.classList.toggle('active', !wasOpen);
+        } else {
+          panel.classList.remove('open');
+          el.classList.remove('active');
+        }
+      });
+    }
+
+    function togglePanel(id) {
+      document.getElementById(id).classList.toggle('open');
+    }
+
+    function toggleDefense(idx) {
+      const panel = document.getElementById('def-panel-' + idx);
+      panel.classList.toggle('open');
+    }
+
+    function setDefenseView(view) {
+      defenseView = view;
+      document.getElementById('def-btn-hardened').classList.toggle('active', view === 'hardened');
+      document.getElementById('def-btn-vulnerable').classList.toggle('active', view === 'vulnerable');
+      updateDefenseStack();
+    }
+
+    function updateDefenseStack() {
+      const layers = [
+        { name: 'httpOnly', hardened: true, vulnerable: false },
+        { name: 'Short Expiry', hardened: true, vulnerable: false },
+        { name: 'Server-Side Store', hardened: true, vulnerable: false },
+        { name: 'Device Binding', hardened: true, vulnerable: false },
+        { name: 'Audit Logging', hardened: true, vulnerable: false },
+      ];
+
+      layers.forEach((layer, i) => {
+        const el = document.getElementById('def-' + i);
+        const statusEl = document.getElementById('def-' + i + '-status');
+        const active = defenseView === 'hardened' ? layer.hardened : layer.vulnerable;
+        el.className = 'defense-layer ' + (active ? 'active-defense' : 'missing-defense');
+        statusEl.textContent = active ? 'ACTIVE' : 'MISSING';
+      });
+    }
+
+    function toggleFuture(el) {
+      const detail = el.querySelector('.expand-detail');
+      detail.classList.toggle('open');
+    }
+
+    function copyJwt() {
+      navigator.clipboard.writeText(rawJwt).then(() => {
+        const btn = document.getElementById('jwt-copy-btn');
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy JWT'; btn.classList.remove('copied'); }, 2000);
+      });
+    }
+
+    /* ══════════════════════════════════════
+       GLOSSARY
+       ══════════════════════════════════════ */
+    function renderGlossary() {
+      const grid = document.getElementById('glossary-grid');
+      grid.innerHTML = glossaryTerms.map(t =>
+        '<div class="glossary-term" data-term="' + t.term.toLowerCase() + '">' +
+        '<div class="term-name">' + t.term + '</div>' +
+        '<div class="term-def">' + t.def + '</div>' +
+        '</div>'
+      ).join('');
+    }
+
+    function filterGlossary() {
+      const q = document.getElementById('glossary-search').value.toLowerCase();
+      document.querySelectorAll('.glossary-term').forEach(el => {
+        const match = el.getAttribute('data-term').includes(q) || el.querySelector('.term-def').textContent.toLowerCase().includes(q);
+        el.style.display = match ? '' : 'none';
+      });
+    }
+
+    /* ══════════════════════════════════════
+       SCROLL SPY
+       ══════════════════════════════════════ */
+    function setupScrollSpy() {
+      // Sync section-nav sticky top with actual header height
+      const header = document.querySelector('.header');
+      const secNav = document.querySelector('.section-nav');
+      function syncNavTop() {
+        const h = header.offsetHeight;
+        secNav.style.top = h + 'px';
+      }
+      syncNavTop();
+      window.addEventListener('resize', syncNavTop);
+
+      const sections = document.querySelectorAll('.section[id]');
+      const navLinks = document.querySelectorAll('.section-nav a');
+
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            navLinks.forEach(link => {
+              link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+            });
+          }
+        });
+      }, { rootMargin: '-30% 0px -60% 0px' });
+
+      sections.forEach(s => observer.observe(s));
+    }
+
+    /* ── Init ── */
+    init();
+  </script>
+</body>
+</html>

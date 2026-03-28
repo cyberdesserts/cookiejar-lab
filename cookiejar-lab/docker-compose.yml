@@ -1,0 +1,28 @@
+services:
+  vulnerable:
+    build: ./vulnerable-app
+    ports:
+      - "127.0.0.1:3001:3001"
+    environment:
+      - JWT_SECRET=cookiejar-vulnerable-secret-do-not-use-in-prod
+      - NODE_ENV=development
+      - PORT=3001
+    volumes:
+      - vulnerable-data:/app/data
+      - ./certs:/app/certs:ro
+
+  hardened:
+    build: ./hardened-app
+    ports:
+      - "127.0.0.1:3002:3002"
+    environment:
+      - JWT_SECRET=cookiejar-hardened-secret-do-not-use-in-prod
+      - NODE_ENV=development
+      - PORT=3002
+    volumes:
+      - hardened-data:/app/data
+      - ./certs:/app/certs:ro
+
+volumes:
+  vulnerable-data:
+  hardened-data:

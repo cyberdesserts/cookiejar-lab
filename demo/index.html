@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍪</text></svg>">
+  <title>CookieJar Lab | Interactive Demo</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-2: #242836;
+      --accent: #ff6b6b;
+      --accent-2: #ffa36b;
+      --green: #51cf66;
+      --blue: #339af0;
+      --text: #e1e4eb;
+      --text-dim: #8b92a5;
+      --border: #2d3348;
+      --danger: #ff4757;
+      --amber: #f59f00;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 48px;
+      overflow-x: hidden;
+    }
+
+    /* ═══════ HEADER ═══════ */
+    .header {
+      position: sticky; top: 0; z-index: 100;
+      background: linear-gradient(135deg, #1a1d27 0%, #2d1a2e 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .header h1 { font-size: 18px; white-space: nowrap; }
+    .header h1 span { color: var(--accent); }
+    .badge-demo {
+      padding: 4px 12px; border-radius: 4px; font-size: 10px;
+      font-weight: bold; text-transform: uppercase; letter-spacing: 1px;
+      background: var(--amber); color: #1a1d27;
+    }
+
+    /* ═══════ JOURNEY BAR ═══════ */
+    .journey-bar {
+      position: sticky; top: 46px; z-index: 99;
+      display: flex; align-items: center; justify-content: center;
+      padding: 10px 24px;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+    }
+    .j-step {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: var(--text-dim); opacity: 0.35;
+      white-space: nowrap; cursor: pointer; text-decoration: none;
+      transition: all 0.4s;
+    }
+    .j-step.active { opacity: 1; color: var(--accent); font-weight: 600; }
+    .j-step.done { opacity: 0.65; }
+    .j-dot {
+      width: 22px; height: 22px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: bold;
+      border: 2px solid var(--border); color: var(--text-dim);
+      flex-shrink: 0; transition: all 0.4s;
+    }
+    .j-step.done .j-dot { border-color: var(--green); color: var(--green); }
+    .j-step.active .j-dot { background: var(--accent); border-color: var(--accent); color: #1a1d27; }
+    .j-conn { width: 32px; height: 2px; background: var(--border); flex-shrink: 0; transition: background 0.4s; }
+    .j-conn.done { background: var(--green); }
+
+    /* ═══════ GUIDE ARROW ═══════ */
+    .guide {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px 10px 16px;
+      background: var(--accent);
+      color: #1a1d27;
+      border-radius: 24px;
+      font-size: 13px; font-weight: 700;
+      cursor: pointer;
+      animation: guidePulse 2s ease-in-out infinite;
+      border: none; font-family: inherit;
+      text-decoration: none;
+      transition: transform 0.2s;
+      white-space: nowrap;
+    }
+    .guide:hover { transform: scale(1.05); }
+    .guide .arrow { font-size: 18px; animation: bounceRight 1s ease-in-out infinite; display: inline-block; }
+    @keyframes bounceRight {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(6px); }
+    }
+    @keyframes guidePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,107,0.5); }
+      50% { box-shadow: 0 0 0 8px rgba(255,107,107,0); }
+    }
+    .guide-down .arrow { animation: bounceDown 1s ease-in-out infinite; }
+    @keyframes bounceDown {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(5px); }
+    }
+    .guide-green { background: var(--green); animation-name: guidePulseGreen; }
+    @keyframes guidePulseGreen {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(81,207,102,0.5); }
+      50% { box-shadow: 0 0 0 8px rgba(81,207,102,0); }
+    }
+    .guide-danger { background: var(--danger); animation-name: guidePulseDanger; }
+    @keyframes guidePulseDanger {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,71,87,0.5); }
+      50% { box-shadow: 0 0 0 8px rgba(255,71,87,0); }
+    }
+
+    /* ═══════ SECTIONS ═══════ */
+    .scene {
+      min-height: 70vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 60px 20px;
+      position: relative;
+    }
+    .scene-inner { max-width: 720px; width: 100%; }
+
+    /* ═══════ HERO ═══════ */
+    .hero { text-align: center; min-height: 80vh; }
+    .hero-cookie { font-size: 64px; margin-bottom: 20px; }
+    .hero h2 { font-size: 32px; line-height: 1.3; margin-bottom: 12px; }
+    .hero h2 em { color: var(--accent); font-style: normal; }
+    .hero .sub { color: var(--text-dim); font-size: 14px; line-height: 1.6; margin-bottom: 40px; }
+    .hero .lab-note {
+      margin-top: 24px; font-size: 12px; color: var(--text-dim); line-height: 1.6;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px 20px; display: inline-block;
+    }
+    .hero .lab-note a { color: var(--accent); text-decoration: none; }
+
+    /* ═══════ STEP 1: LOGIN ═══════ */
+    .login-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 28px; max-width: 380px; margin: 0 auto;
+    }
+    .login-card h3 { font-size: 15px; margin-bottom: 4px; }
+    .login-card .dim { color: var(--text-dim); font-size: 11px; margin-bottom: 20px; }
+    .fg { margin-bottom: 14px; }
+    .fg label { display: block; font-size: 11px; color: var(--text-dim); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .fg input {
+      width: 100%; padding: 9px 12px;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text); font-family: inherit; font-size: 13px; outline: none;
+    }
+    .btn-login {
+      width: 100%; padding: 10px; background: var(--accent); color: #1a1d27; border: none;
+      border-radius: 6px; font-family: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s;
+    }
+    .btn-login:hover { opacity: 0.85; }
+    .login-ok {
+      text-align: center; padding: 20px 0;
+      animation: fadeUp 0.4s ease;
+    }
+    .login-ok .check { font-size: 36px; margin-bottom: 8px; }
+    .login-ok p { color: var(--green); font-size: 14px; font-weight: 600; }
+    .login-ok .dim { color: var(--text-dim); font-size: 12px; margin-top: 4px; }
+
+    /* ═══════ STEP 2: DASHBOARD ═══════ */
+    .dash-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 24px; margin-bottom: 16px;
+    }
+    .dash-user { font-size: 18px; margin-bottom: 6px; }
+    .dash-user em { color: var(--accent); font-style: normal; }
+    .badge-totp {
+      display: inline-block; padding: 3px 8px; border-radius: 4px;
+      font-size: 10px; font-weight: bold; text-transform: uppercase;
+      background: rgba(81,207,102,0.15); color: var(--green); border: 1px solid rgba(81,207,102,0.3);
+    }
+    .flag-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+      flex-wrap: wrap;
+    }
+    .flag-row:last-child { border-bottom: none; }
+    .flag-row .k { color: var(--text-dim); }
+    .flag-row .v { color: var(--accent); font-weight: 600; }
+    .flag-desc {
+      width: 100%; font-size: 12px; color: var(--text-dim); font-weight: 400;
+      margin-top: 6px; line-height: 1.5;
+    }
+    .finding {
+      background: rgba(255,71,87,0.08); border: 1px solid rgba(255,71,87,0.25);
+      border-radius: 8px; padding: 14px 16px; margin-top: 16px;
+      font-size: 13px; color: #ff8a94; line-height: 1.6;
+    }
+
+    /* ═══════ STEP 3: VAULT ═══════ */
+    .vault-token {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 16px; font-size: 11px; word-break: break-all; line-height: 1.6;
+      color: var(--accent-2); max-height: 80px; overflow-y: auto;
+      margin-bottom: 16px;
+    }
+    .vault-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 24px; margin-bottom: 16px;
+    }
+    .vault-card h4 {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--text-dim); margin-bottom: 12px;
+    }
+    .steal-row {
+      display: flex; justify-content: space-between; padding: 6px 10px;
+      background: var(--bg); border-radius: 4px; margin-bottom: 3px; font-size: 12px;
+    }
+    .steal-row .k { color: var(--text-dim); }
+    .steal-row .v { color: var(--accent); font-weight: 600; }
+    .vault-insight {
+      font-size: 12px; color: var(--text-dim); line-height: 1.6;
+      margin-top: 12px; padding: 10px 14px;
+      background: rgba(255,71,87,0.06); border-radius: 6px;
+    }
+    .vault-insight strong { color: var(--danger); }
+
+    /* ═══════ STEP 4: ATTACK ═══════ */
+    .atk-panel {
+      background: var(--surface); border: 1px solid rgba(255,71,87,0.3);
+      border-radius: 12px; padding: 24px;
+    }
+    .atk-panel h3 { font-size: 14px; margin-bottom: 12px; color: var(--accent); }
+    .atk-token {
+      width: 100%; padding: 12px; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--accent-2); font-family: inherit; font-size: 11px;
+      min-height: 60px; resize: none; outline: none;
+    }
+    .btn-replay {
+      display: block; width: 100%; padding: 12px;
+      background: var(--danger); color: #1a1d27; border: none;
+      border-radius: 6px; font-family: inherit; font-size: 14px;
+      font-weight: 700; cursor: pointer; margin-top: 14px;
+      transition: opacity 0.2s;
+    }
+    .btn-replay:hover { opacity: 0.85; }
+
+    /* Result */
+    .result { animation: fadeUp 0.5s ease; }
+    .result-banner {
+      background: rgba(81,207,102,0.1); border: 2px solid var(--green);
+      border-radius: 12px; padding: 24px; text-align: center;
+      margin-bottom: 20px;
+    }
+    .result-banner .ico { font-size: 40px; margin-bottom: 6px; }
+    .result-banner h3 { color: var(--green); font-size: 22px; }
+    .result-banner p { color: var(--text-dim); font-size: 13px; margin-top: 4px; }
+    .result-profile {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px; margin-bottom: 16px;
+    }
+    .rp-row {
+      display: flex; justify-content: space-between; padding: 8px 0;
+      border-bottom: 1px solid var(--border); font-size: 13px;
+    }
+    .rp-row:last-child { border-bottom: none; }
+    .rp-row .k { color: var(--text-dim); }
+    .rp-row .v { font-weight: 600; }
+    .rp-row .v.g { color: var(--green); }
+    .rp-row .v.w { color: var(--accent); }
+    .explainer-box {
+      background: rgba(255,163,107,0.08); border: 1px solid rgba(255,163,107,0.25);
+      border-radius: 12px; padding: 20px;
+    }
+    .explainer-box h4 { font-size: 15px; color: var(--accent-2); margin-bottom: 10px; }
+    .explainer-box p { font-size: 12px; color: var(--text-dim); line-height: 1.7; margin-bottom: 10px; }
+    .explainer-box .vuln-list { font-size: 12px; color: var(--text-dim); line-height: 1.8; }
+    .explainer-box .vuln-list span { color: var(--accent); }
+
+    /* ═══════ HARDENED TEASER ═══════ */
+    .vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+    .vs-card {
+      background: var(--surface); border-radius: 12px; padding: 20px;
+    }
+    .vs-card.bad { border: 1px solid rgba(255,71,87,0.3); }
+    .vs-card.good { border: 1px solid rgba(81,207,102,0.3); }
+    .vs-card h4 {
+      font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
+    }
+    .vs-card.bad h4 { color: var(--danger); }
+    .vs-card.good h4 { color: var(--green); }
+    .vs-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12px; }
+    .vs-row .k { color: var(--text-dim); }
+    .vs-row .bad { color: var(--accent); }
+    .vs-row .good { color: var(--green); }
+
+    /* ═══════ CTA ═══════ */
+    .cta-section { text-align: center; padding: 60px 20px 40px; }
+    .cta-section h2 { font-size: 22px; margin-bottom: 8px; }
+    .cta-section .sub { color: var(--text-dim); font-size: 13px; margin-bottom: 28px; }
+    .cta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; max-width: 900px; margin: 0 auto; text-align: left; }
+    .cta-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+    }
+    .cta-card h3 { font-size: 14px; margin-bottom: 10px; }
+    .cta-card p { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin-bottom: 10px; }
+    .cta-card a { color: var(--accent); text-decoration: none; font-size: 12px; }
+    .cta-card a:hover { text-decoration: underline; }
+    .code-b {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+      padding: 8px 12px; font-size: 11px; color: var(--accent-2); margin-bottom: 6px;
+      overflow-x: auto;
+    }
+    .footer {
+      text-align: center; padding: 24px; font-size: 11px; color: var(--text-dim);
+      border-top: 1px solid var(--border); margin-top: 20px;
+    }
+    .footer a { color: var(--blue); text-decoration: none; }
+
+    /* ═══════ URGENCY BOX ═══════ */
+    .urgency-box {
+      background: rgba(51,154,240,0.08); border: 1px solid rgba(51,154,240,0.25);
+      border-radius: 12px; padding: 20px; margin-top: 20px;
+    }
+    .urgency-box h4 { font-size: 15px; color: var(--blue); margin-bottom: 10px; }
+    .urgency-box .stat-hook { font-size: 13px; color: var(--text); line-height: 1.7; margin-bottom: 14px; }
+    .urgency-box .reality-check { font-size: 12px; color: var(--text-dim); line-height: 1.8; margin-bottom: 14px; padding-left: 4px; }
+    .urgency-box .reality-check li { margin-bottom: 6px; list-style: none; }
+    .urgency-box .reality-check li::before { content: "→ "; color: var(--blue); font-weight: bold; }
+    .urgency-box .closer { font-size: 13px; color: var(--text); font-weight: 600; line-height: 1.6; }
+
+    /* ═══════ TAKEAWAY LIST ═══════ */
+    .takeaway-section { margin-top: 24px; }
+    .takeaway-section h4 { font-size: 14px; color: var(--text); margin-bottom: 12px; }
+    .takeaway-list { list-style: none; padding: 0; }
+    .takeaway-list li {
+      font-size: 12px; color: var(--text-dim); line-height: 1.7;
+      padding: 8px 0 8px 20px; border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .takeaway-list li::before {
+      content: "✓"; color: var(--green); font-weight: bold; position: absolute; left: 0;
+    }
+    .takeaway-list li:last-child { border-bottom: none; }
+    .takeaway-oneliner {
+      font-size: 12px; color: var(--text-dim); margin-top: 14px;
+      font-style: italic; line-height: 1.6;
+    }
+
+    /* ═══════ CTA CARD VARIANTS ═══════ */
+    .cta-card.blue-accent { border-color: rgba(51,154,240,0.4); }
+    .cta-card.blue-accent h3 { color: var(--blue); }
+    .cta-card.blue-accent a { color: var(--blue); }
+    .cta-card.red-accent { border-color: rgba(255,107,107,0.4); }
+    .cta-card.red-accent h3 { color: var(--accent); }
+    .cta-card.green-accent { border-color: rgba(81,207,102,0.4); }
+    .cta-card.green-accent h3 { color: var(--green); }
+    .cta-card.green-accent a { color: var(--green); }
+
+    /* ═══════ BOTTOM BAR ═══════ */
+    .bottom-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      background: var(--surface); border-top: 1px solid var(--border);
+      padding: 8px 24px; display: flex; align-items: center; justify-content: center;
+      gap: 6px; font-size: 11px; color: var(--text-dim);
+    }
+    .bottom-bar a { color: var(--accent); text-decoration: none; font-weight: 600; }
+
+    /* ═══════ ANIMATIONS ═══════ */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .fade-up { animation: fadeUp 0.5s ease both; }
+    .delay-1 { animation-delay: 0.15s; }
+    .delay-2 { animation-delay: 0.3s; }
+    .delay-3 { animation-delay: 0.45s; }
+
+    .hidden { display: none; }
+
+    /* ═══════ STAT STRIP ═══════ */
+    .stat-strip {
+      display: flex; gap: 16px; justify-content: center;
+      margin-bottom: 32px;
+    }
+    .stat-item {
+      flex: 1; max-width: 220px;
+      background: var(--surface); border-radius: 8px;
+      padding: 16px 14px; text-align: center;
+    }
+    .stat-item .num {
+      font-size: 28px; font-weight: 800; color: var(--accent);
+      line-height: 1.2; margin-bottom: 4px;
+    }
+    .stat-item .lbl {
+      font-size: 11px; color: var(--text-dim); line-height: 1.4;
+    }
+
+    /* ═══════ RESPONSIVE ═══════ */
+    @media (max-width: 640px) {
+      .vs-grid { grid-template-columns: 1fr; }
+      .cta-grid { grid-template-columns: 1fr; max-width: 720px; }
+      .header { padding: 10px 16px; }
+      .header h1 { font-size: 15px; }
+      .journey-bar { padding: 8px 12px; }
+      .j-step span { display: none; }
+      .j-conn { width: 20px; }
+      .scene { padding: 40px 16px; min-height: 60vh; }
+      .hero h2 { font-size: 24px; }
+      .stat-strip { flex-direction: column; align-items: center; }
+      .stat-item { max-width: 100%; width: 100%; }
+      .flag-row, .steal-row, .rp-row, .vs-row { flex-direction: column; gap: 2px; }
+      .guide { font-size: 12px; padding: 8px 16px 8px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1><span>&#127850;</span> CookieJar Lab</h1>
+    <span class="badge-demo">Interactive Demo</span>
+  </div>
+
+  <!-- JOURNEY BAR -->
+  <div class="journey-bar" id="jbar">
+    <a href="#step1" class="j-step" data-s="1"><div class="j-dot">1</div><span>Login</span></a>
+    <div class="j-conn" data-a="1"></div>
+    <a href="#step2" class="j-step" data-s="2"><div class="j-dot">2</div><span>Dashboard</span></a>
+    <div class="j-conn" data-a="2"></div>
+    <a href="#step3" class="j-step" data-s="3"><div class="j-dot">3</div><span>Cookie Vault</span></a>
+    <div class="j-conn" data-a="3"></div>
+    <a href="#step4" class="j-step" data-s="4"><div class="j-dot">4</div><span>Attack</span></a>
+  </div>
+
+  <!-- ═══════════════════════
+       HERO
+       ═══════════════════════ -->
+  <section class="scene hero" id="hero">
+    <div class="scene-inner">
+      <div class="hero-cookie">&#127850;</div>
+      <h2>See how a stolen cookie <em>bypasses passwords and 2FA</em></h2>
+      <p class="sub">Walk through a 4-step attack in 60 seconds. No setup required.</p>
+
+      <div class="stat-strip">
+        <div class="stat-item">
+          <div class="num">1.8B</div>
+          <div class="lbl">credentials stolen by infostealers, 2025</div>
+        </div>
+        <div class="stat-item">
+          <div class="num">17B</div>
+          <div class="lbl">cookies exfiltrated, including session tokens</div>
+        </div>
+        <div class="stat-item">
+          <div class="num">54%</div>
+          <div class="lbl">of ransomware linked to prior infostealer theft</div>
+        </div>
+      </div>
+
+      <button class="guide" onclick="startDemo()">
+        Start Demo <span class="arrow">&#8250;</span>
+      </button>
+
+      <div class="lab-note">
+        This uses sample data.
+        <a href="https://github.com/CyberDesserts/cookie-jar">Run the full lab</a>
+        to try the attack with real sessions you create.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════
+       STEP 1: LOGIN
+       ═══════════════════════ -->
+  <section class="scene" id="step1">
+    <div class="scene-inner">
+      <div class="login-card" id="login-card">
+        <h3>Password + TOTP 2FA Login</h3>
+        <p class="dim">The user does everything right. Strong password, 2FA enabled.</p>
+
+        <div id="login-form-area">
+          <div class="fg">
+            <label>Username</label>
+            <input type="text" id="f-user" readonly>
+          </div>
+          <div class="fg">
+            <label>Password</label>
+            <input type="password" id="f-pass" readonly>
+          </div>
+          <div class="fg hidden" id="f-totp-g">
+            <label>TOTP Code</label>
+            <input type="text" id="f-totp" readonly>
+          </div>
+          <button class="btn-login" id="login-btn" onclick="doLogin()">Login</button>
+        </div>
+
+        <div id="login-ok" class="hidden">
+          <div class="login-ok">
+            <div class="check">&#9989;</div>
+            <p>Login successful</p>
+            <p class="dim">Session cookie issued to browser</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:20px;">
+        <div id="login-guide" class="hidden">
+          <button class="guide guide-green" onclick="goTo('step2')">
+            See the session <span class="arrow">&#8250;</span>
+          </button>
+        </div>
+        <div id="login-arrow" style="text-align:center;">
+          <button class="guide" onclick="doLogin()" id="login-hint">
+            Click Login <span class="arrow">&#8250;</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════
+       STEP 2: DASHBOARD
+       ═══════════════════════ -->
+  <section class="scene" id="step2">
+    <div class="scene-inner">
+      <div class="dash-card">
+        <div class="dash-user">Welcome, <em>alice</em></div>
+        <span class="badge-totp">Password + TOTP</span>
+      </div>
+
+      <div class="dash-card">
+        <h4 style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-dim); margin-bottom:12px;">Cookie Security Flags</h4>
+        <div class="flag-row">
+          <span class="k">httpOnly</span>
+          <span class="v">false</span>
+          <p class="flag-desc">Any script or malware running on this device can read this cookie directly. Nothing prevents it.</p>
+        </div>
+        <div class="flag-row">
+          <span class="k">secure</span>
+          <span class="v">false</span>
+          <p class="flag-desc">The cookie travels over unencrypted connections. Anyone on the same network could intercept it.</p>
+        </div>
+        <div class="flag-row">
+          <span class="k">sameSite</span>
+          <span class="v">None</span>
+          <p class="flag-desc">The browser attaches this cookie to every request, even from other websites. No restrictions at all.</p>
+        </div>
+        <div class="finding">
+          All three protections are turned off. This cookie is completely exposed. Any malware on the device can steal it instantly, and nothing will stop it being used from another machine.
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:16px;">
+        <button class="guide" onclick="goTo('step3')">
+          See what gets stolen <span class="arrow">&#8250;</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════
+       STEP 3: COOKIE VAULT
+       ═══════════════════════ -->
+  <section class="scene" id="step3">
+    <div class="scene-inner">
+      <div class="vault-card">
+        <h4>&#127850; Stolen Session Token</h4>
+        <div class="vault-token" id="raw-token"></div>
+        <div class="vault-insight">
+          <strong>This token is the keys to alice's account.</strong>
+          Whoever has it doesn't need her password, doesn't need her 2FA code, and doesn't need to log in at all. The server will treat them as alice, with full access to everything she can see and do.
+        </div>
+      </div>
+
+      <div class="vault-card">
+        <h4>&#128375; What the infostealer extracted</h4>
+        <div id="steal-fields"></div>
+        <div class="vault-insight" style="margin-top:14px;">
+          <strong>What this gives the attacker:</strong>
+          A username and email to target in further attacks. Confirmation that MFA was active, proof the account was &ldquo;protected&rdquo; and likely contains high-value data. And the session token itself: the single artifact needed for full account takeover. No brute forcing. No phishing for credentials. Just paste and access.
+        </div>
+      </div>
+
+      <div class="vault-card" style="border-color: rgba(255,163,107,0.3);">
+        <h4 style="color:var(--accent-2);">&#127875; How infostealers grab this</h4>
+        <p style="font-size:12px; color:var(--text-dim); line-height:1.7;">
+          Malware like <strong style="color:var(--text);">RedLine, Raccoon, and Lumma</strong> runs silently
+          after a user opens a phishing attachment or trojanized download. It reads the browser's cookie
+          database directly from disk, an SQLite file sitting unencrypted in the user's profile folder.
+          The entire operation takes <strong style="color:var(--text);">under 2 seconds</strong>. No browser interaction,
+          no pop-ups, no visible sign. The stolen cookies are sent to the attacker's C2 server, where they're
+          sold on dark web marketplaces or replayed immediately.
+        </p>
+      </div>
+
+      <div style="text-align:center; margin-top:16px;">
+        <button class="guide guide-danger" onclick="goTo('step4')">
+          Replay the stolen cookie <span class="arrow">&#8250;</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════
+       STEP 4: ATTACK CONSOLE
+       ═══════════════════════ -->
+  <section class="scene" id="step4">
+    <div class="scene-inner">
+      <div class="atk-panel" id="atk-panel">
+        <h3>&#128375; Session Replay Attack</h3>
+        <p style="font-size:12px; color:var(--text-dim); margin-bottom:14px; line-height:1.6;">
+          An attacker on a completely different device pastes the stolen token into their browser.
+          The server sees a valid session cookie and grants full access. It has no way to know
+          this isn't the original user.
+        </p>
+        <textarea class="atk-token" id="atk-token" readonly></textarea>
+        <button class="btn-replay" id="replay-btn" onclick="doReplay()">Replay Session</button>
+      </div>
+
+      <div style="text-align:center; margin-top:16px;">
+        <div id="atk-hint">
+          <button class="guide guide-danger" onclick="doReplay()">
+            Click Replay Session <span class="arrow">&#8250;</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Result appears here -->
+      <div id="atk-result" class="hidden" style="margin-top:24px;"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════
+       HARDENED TEASER
+       ═══════════════════════ -->
+  <section class="scene hidden" id="hardened" style="min-height:auto; padding: 40px 20px;">
+    <div class="scene-inner">
+      <h3 style="font-size:16px; margin-bottom:6px;">The hardened app blocks this same attack</h3>
+      <p style="font-size:12px; color:var(--text-dim); margin-bottom:16px;">Same app, same login flow, but the session is protected.</p>
+
+      <div class="vs-grid">
+        <div class="vs-card bad">
+          <h4>Vulnerable</h4>
+          <div class="vs-row"><span class="k">httpOnly</span><span class="bad">false</span></div>
+          <div class="vs-row"><span class="k">secure</span><span class="bad">false</span></div>
+          <div class="vs-row"><span class="k">sameSite</span><span class="bad">None</span></div>
+          <div class="vs-row"><span class="k">Expiry</span><span class="bad">7 days</span></div>
+          <div class="vs-row"><span class="k">Device binding</span><span class="bad">None</span></div>
+        </div>
+        <div class="vs-card good">
+          <h4>Hardened</h4>
+          <div class="vs-row"><span class="k">httpOnly</span><span class="good">true</span></div>
+          <div class="vs-row"><span class="k">secure</span><span class="good">true</span></div>
+          <div class="vs-row"><span class="k">sameSite</span><span class="good">Strict</span></div>
+          <div class="vs-row"><span class="k">Expiry</span><span class="good">15 min</span></div>
+          <div class="vs-row"><span class="k">Device binding</span><span class="good">IP + UA</span></div>
+        </div>
+      </div>
+
+      <div class="takeaway-section">
+        <h4>What your team should take away</h4>
+        <ul class="takeaway-list">
+          <li>Session security is a separate discipline from authentication. Investing in MFA alone leaves you exposed.</li>
+          <li>Cookie flags (httpOnly, secure, sameSite) are the first line of defense and take minutes to configure correctly</li>
+          <li>Server-side session management enables instant revocation when a compromise is detected</li>
+          <li>Defense in depth (short expiry + device binding + audit logging) makes stolen tokens useless even if exfiltrated</li>
+        </ul>
+        <p class="takeaway-oneliner">The full lab lets your team experience both the attack and the defense hands-on.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════
+       CTA
+       ═══════════════════════ -->
+  <section class="cta-section hidden" id="cta">
+    <div style="max-width:900px; margin:0 auto;">
+      <h2>Try the full attack with real data</h2>
+      <p class="sub">Register your own account, steal your own cookie, and replay it yourself.</p>
+
+      <div class="cta-grid">
+        <div class="cta-card blue-accent">
+          <h3>For Security Teams</h3>
+          <p>Use the CookieJar Lab to train developers and security engineers on session hijacking, the attack MFA can't stop.</p>
+          <p>Run the lab in a workshop, lunch-and-learn, or CTF. Both vulnerable and hardened apps included.</p>
+          <a href="https://cyberdesserts.com">cyberdesserts.com</a><br>
+          <a href="https://linkedin.com/in/shaka">Talk to us about training your team &rarr;</a>
+        </div>
+        <div class="cta-card red-accent">
+          <h3>For Developers</h3>
+          <div class="code-b">git clone https://github.com/CyberDesserts/cookie-jar.git</div>
+          <div class="code-b">cd cookie-jar/cookiejar-lab &amp;&amp; docker compose up</div>
+          <p>Hands-on in 2 minutes. Break the vulnerable app, then see how the hardened app stops you.</p>
+          <p>Vulnerable on <strong>:3001</strong> &middot; Hardened on <strong>:3002</strong></p>
+        </div>
+        <div class="cta-card green-accent">
+          <h3>Stay Current</h3>
+          <p>Session hijacking, infostealer trends, and defense strategies. Delivered weekly.</p>
+          <a href="https://blog.cyberdesserts.com">Newsletter &rarr;</a><br>
+          <a href="https://chat.cyberdesserts.com">AI Learning Assistant &rarr;</a>
+        </div>
+      </div>
+
+      <p style="font-size:13px; color:var(--text); margin-top:32px; font-weight:600;">Session hijacking is the most underestimated risk in application security. Now you've seen why.</p>
+
+      <div class="footer">
+        &#127850; CookieJar Lab by <a href="https://cyberdesserts.com">CyberDesserts</a> &middot; <a href="https://github.com/CyberDesserts/cookie-jar/blob/main/LICENSE">MIT License</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOTTOM BAR -->
+  <div class="bottom-bar">
+    Guided demo with sample data.
+    <a href="https://github.com/CyberDesserts/cookie-jar">Run the full lab with real sessions &rarr;</a>
+  </div>
+
+  <!-- ═══════════════════════
+       JAVASCRIPT
+       ═══════════════════════ -->
+  <script>
+    /* ── Data ── */
+    var JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1X2FiYzEyMyIsInVzZXJuYW1lIjoiYWxpY2UiLCJlbWFpbCI6ImFsaWNlQGV4YW1wbGUuY29tIiwiYXV0aE1ldGhvZCI6InBhc3N3b3JkLXRvdHAiLCJ0b3RwVmVyaWZpZWQiOnRydWUsImlhdCI6MTcxMTUwMDAwMCwiZXhwIjoxNzEyMTA0ODAwfQ.dGhpc19pc19hX2RlbW9fc2lnbmF0dXJlX25vdF9yZWFs';
+    var USER = { userId:'u_abc123', username:'alice', email:'alice@example.com', auth:'password-totp' };
+
+    /* ── Helpers ── */
+    function show(id) { document.getElementById(id).classList.remove('hidden'); }
+    function hide(id) { document.getElementById(id).classList.add('hidden'); }
+    function goTo(id) {
+      document.getElementById(id).scrollIntoView({ behavior:'smooth', block:'center' });
+    }
+
+    /* ── Journey Bar ── */
+    var currentStep = 0;
+    function setStep(n) {
+      currentStep = n;
+      document.querySelectorAll('.j-step').forEach(function(el) {
+        var s = parseInt(el.getAttribute('data-s'));
+        el.classList.remove('active','done');
+        if (s === n) el.classList.add('active');
+        else if (s < n) { el.classList.add('done'); el.querySelector('.j-dot').innerHTML = '&#10003;'; }
+        else el.querySelector('.j-dot').textContent = s;
+      });
+      document.querySelectorAll('.j-conn').forEach(function(el) {
+        var a = parseInt(el.getAttribute('data-a'));
+        el.classList.toggle('done', a < n);
+      });
+    }
+
+    /* Scroll spy */
+    var spySections = ['step1','step2','step3','step4'];
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          var idx = spySections.indexOf(e.target.id);
+          if (idx >= 0) setStep(idx + 1);
+        }
+      });
+    }, { rootMargin: '-40% 0px -50% 0px' });
+
+    spySections.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    /* ── Init ── */
+    document.getElementById('raw-token').textContent = JWT;
+    document.getElementById('atk-token').value = JWT;
+
+    // Steal fields
+    var fields = [
+      ['Username', USER.username],
+      ['Email', USER.email],
+      ['Auth Method', USER.auth],
+      ['TOTP Verified', 'true'],
+      ['Session Token', JWT.substring(0, 40) + '...'],
+    ];
+    var fhtml = '';
+    for (var i = 0; i < fields.length; i++) {
+      fhtml += '<div class="steal-row"><span class="k">' + fields[i][0] + '</span><span class="v">' + fields[i][1] + '</span></div>';
+    }
+    document.getElementById('steal-fields').innerHTML = fhtml;
+
+    /* ── Hero Start ── */
+    function startDemo() {
+      goTo('step1');
+    }
+
+    /* ── Step 1: Login Animation ── */
+    var loginDone = false;
+    function doLogin() {
+      if (loginDone) return;
+      loginDone = true;
+      hide('login-arrow');
+
+      var btn = document.getElementById('login-btn');
+      var uInput = document.getElementById('f-user');
+      var pInput = document.getElementById('f-pass');
+      var tGroup = document.getElementById('f-totp-g');
+      var tInput = document.getElementById('f-totp');
+
+      btn.disabled = true;
+      btn.textContent = 'Authenticating...';
+      uInput.value = '';
+      pInput.value = '';
+      tInput.value = '';
+
+      var user = 'alice';
+      var pass = 'correct-horse-battery';
+      var totp = '482916';
+      var ci = 0;
+
+      function typeU() {
+        if (ci < user.length) { uInput.value += user[ci]; ci++; setTimeout(typeU, 50 + Math.random() * 30); }
+        else { ci = 0; setTimeout(typeP, 200); }
+      }
+      function typeP() {
+        if (ci < pass.length) { pInput.value += pass[ci]; ci++; setTimeout(typeP, 30 + Math.random() * 20); }
+        else { ci = 0; setTimeout(showT, 300); }
+      }
+      function showT() {
+        tGroup.classList.remove('hidden');
+        setTimeout(typeT, 200);
+      }
+      function typeT() {
+        if (ci < totp.length) { tInput.value += totp[ci]; ci++; setTimeout(typeT, 80 + Math.random() * 60); }
+        else setTimeout(finish, 400);
+      }
+      function finish() {
+        hide('login-form-area');
+        show('login-ok');
+        show('login-guide');
+        // Auto-advance after 2s
+        setTimeout(function() { goTo('step2'); }, 2000);
+      }
+
+      typeU();
+    }
+
+    /* ── Step 4: Replay ── */
+    var replayDone = false;
+    function doReplay() {
+      if (replayDone) return;
+      replayDone = true;
+      hide('atk-hint');
+
+      var btn = document.getElementById('replay-btn');
+      btn.disabled = true;
+      btn.textContent = 'Replaying...';
+
+      setTimeout(function() {
+        hide('atk-panel');
+
+        var r = document.getElementById('atk-result');
+        r.classList.remove('hidden');
+        r.innerHTML =
+          '<div class="result">' +
+            '<div class="result-banner">' +
+              '<div class="ico">&#9989;</div>' +
+              '<h3>Full Account Takeover</h3>' +
+              '<p>An attacker on a completely different device now has unrestricted access to alice\'s account. No password. No 2FA. No login. Nothing was triggered, nothing was flagged.</p>' +
+            '</div>' +
+            '<div class="result-profile">' +
+              '<div class="rp-row"><span class="k">Username</span><span class="v g">' + USER.username + '</span></div>' +
+              '<div class="rp-row"><span class="k">Email</span><span class="v g">' + USER.email + '</span></div>' +
+              '<div class="rp-row"><span class="k">Auth Method</span><span class="v">' + USER.auth + '</span></div>' +
+              '<div class="rp-row"><span class="k">TOTP Verified</span><span class="v w">Yes (bypassed)</span></div>' +
+              '<div class="rp-row"><span class="k">Password Required</span><span class="v g">NO</span></div>' +
+              '<div class="rp-row"><span class="k">2FA Required</span><span class="v g">NO</span></div>' +
+            '</div>' +
+            '<div class="explainer-box">' +
+              '<h4>What this means for your organisation</h4>' +
+              '<p style="font-size:13px;color:var(--text);margin-bottom:12px;"><strong>You just watched an attacker gain complete access to a user\'s account by replaying a single stolen cookie.</strong> No credentials were needed. No security alerts were triggered. Every protection the user had in place (strong password, two-factor authentication) was irrelevant.</p>' +
+              '<p style="margin-bottom:6px;"><strong style="color:var(--text);">Invisible entry.</strong> ' +
+                'There\'s no failed login attempt, no suspicious IP alert, no MFA challenge. From the server\'s perspective, this is a normal, authenticated session. Most security tooling won\'t flag it.</p>' +
+              '<p style="margin-bottom:6px;"><strong style="color:var(--text);">Full access, not partial.</strong> ' +
+                'The attacker inherits every permission alice has. If she\'s an admin, they\'re an admin. If she can access customer data, so can they. The blast radius is whatever the compromised user can reach.</p>' +
+              '<p style="margin-bottom:14px;"><strong style="color:var(--text);">Your investment in MFA didn\'t help.</strong> ' +
+                'Passwords and 2FA protect one moment: the login. Everything after that login, every page load, every API call, every action, is authorized by this cookie alone. That\'s the gap.</p>' +
+              '<p style="font-size:13px;color:var(--text);margin-bottom:14px;">This isn\'t a flaw in how alice behaved. It\'s a flaw in how the application was built. And it\'s the default configuration for most web applications in production today.</p>' +
+              '<div class="vuln-list">' +
+                '<strong style="color:var(--text);font-size:12px;">The 4 misconfigurations that made this possible:</strong><br>' +
+                '<span>httpOnly: false</span>. Malware reads the cookie straight from the browser. The user never knows.<br>' +
+                '<span>7-day expiry</span>. The attacker has a week-long window to use the stolen session.<br>' +
+                '<span>No server-side sessions</span>. Even after discovering the breach, there\'s no way to revoke access.<br>' +
+                '<span>No device binding</span>. The token works from any device, any location, anywhere in the world.' +
+              '</div>' +
+            '</div>' +
+            '<div class="urgency-box">' +
+              '<h4>This isn\'t a theoretical risk</h4>' +
+              '<p class="stat-hook">Session hijacking via infostealer malware is now the #1 method attackers use to bypass MFA. Stolen session tokens were behind breaches at major tech companies, financial institutions, and government agencies in 2024&ndash;2025.</p>' +
+              '<ul class="reality-check">' +
+                '<li>Every web app using cookie-based sessions is a potential target</li>' +
+                '<li>MFA protects login, but not the session that follows. Most orgs have a blind spot here.</li>' +
+                '<li>Infostealers are commodity malware, sold as-a-service for ~$200/month. The barrier to entry is near zero.</li>' +
+              '</ul>' +
+              '<p class="closer">If your team builds or secures web applications, understanding this attack chain isn\'t optional. It\'s table stakes.</p>' +
+            '</div>' +
+            '<div style="text-align:center; margin-top:20px;">' +
+              '<button class="guide guide-green" onclick="showEnding()">See how to stop this <span class="arrow">&#8250;</span></button>' +
+            '</div>' +
+          '</div>';
+
+      }, 800);
+    }
+
+    /* ── Ending: Hardened + CTA ── */
+    function showEnding() {
+      show('hardened');
+      show('cta');
+      goTo('hardened');
+    }
+  </script>
+</body>
+</html>

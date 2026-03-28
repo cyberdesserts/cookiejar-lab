@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍪</text></svg>">
+  <title>Cookie Vault | CookieJar Lab (Vulnerable)</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-2: #242836;
+      --accent: #ff6b6b;
+      --accent-2: #ffa36b;
+      --green: #51cf66;
+      --blue: #339af0;
+      --text: #e1e4eb;
+      --text-dim: #8b92a5;
+      --border: #2d3348;
+      --danger: #ff4757;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    .header {
+      background: linear-gradient(135deg, #1a1d27 0%, #2d1a2e 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header h1 { font-size: 20px; }
+    .header h1 span { color: var(--accent); }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .app-badge { padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+    .badge-vuln { background: var(--danger); color: #1a1d27; }
+    .nav-link { color: var(--text-dim); text-decoration: none; font-size: 13px; transition: color 0.2s; white-space: nowrap; }
+    .nav-link:hover { color: var(--text); }
+    .nav-link.active { color: var(--accent); }
+    .btn-logout { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .nav-auth-btn {
+      min-width: 80px;
+      text-align: center;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .nav-auth-btn:hover { opacity: 0.85; }
+    .nav-auth-btn.login-btn {
+      background: var(--accent);
+      color: #1a1d27;
+    }
+    .nav-auth-btn.logout-btn {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+
+    .page-title { font-size: 22px; margin-bottom: 8px; }
+    .page-subtitle { color: var(--text-dim); font-size: 13px; margin-bottom: 28px; line-height: 1.6; }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .panel h3 {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cookie-raw {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 12px;
+      word-break: break-all;
+      line-height: 1.6;
+      color: var(--accent-2);
+      position: relative;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .jwt-parts { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .jwt-part {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .jwt-part h4 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .jwt-part.header-part h4 { color: var(--accent); }
+    .jwt-part.payload-part h4 { color: var(--accent-2); }
+    .jwt-part pre {
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text);
+      white-space: pre-wrap;
+    }
+
+    .infostealer-section {
+      background: rgba(255, 71, 87, 0.05);
+      border: 1px solid rgba(255, 71, 87, 0.2);
+    }
+    .infostealer-section h3 { color: var(--danger); }
+
+    .stolen-field {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--bg);
+      border-radius: 4px;
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+    .stolen-field .key { color: var(--text-dim); }
+    .stolen-field .val { color: var(--accent); font-weight: 600; }
+
+    .path-info {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 12px;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+    .path-info code {
+      background: var(--surface-2);
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: var(--accent-2);
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-copy { background: var(--accent); color: #1a1d27; margin-top: 12px; }
+    .btn-copy.copied { background: var(--green); }
+
+    .explanation {
+      background: rgba(51, 154, 240, 0.1);
+      border: 1px solid rgba(51, 154, 240, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 12px;
+      color: #74c0fc;
+      line-height: 1.6;
+      margin-top: 20px;
+    }
+
+    .journey-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 32px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      gap: 0;
+    }
+    .journey-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-dim);
+      opacity: 0.4;
+      white-space: nowrap;
+    }
+    .journey-step.completed { opacity: 0.7; }
+    .journey-step.active { opacity: 1; color: var(--accent); font-weight: 600; }
+    .journey-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+      border: 2px solid var(--border);
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+    .journey-step.completed .journey-dot { border-color: var(--accent); color: var(--accent); }
+    .journey-step.active .journey-dot { background: var(--accent); border-color: var(--accent); color: #1a1d27; }
+    .journey-connector { width: 40px; height: 2px; background: var(--border); flex-shrink: 0; }
+    .journey-connector.completed { background: var(--accent); }
+
+    .next-step-cta {
+      background: linear-gradient(135deg, rgba(255,107,107,0.08), rgba(255,163,107,0.08));
+      border: 1px solid rgba(255,107,107,0.25);
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 32px;
+      text-align: center;
+    }
+    .next-step-cta .next-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-dim);
+    }
+    .next-step-cta h3 { margin: 8px 0 6px; font-size: 16px; }
+    .next-step-cta h3 a { color: var(--accent); text-decoration: none; }
+    .next-step-cta h3 a:hover { text-decoration: underline; }
+    .next-step-cta p { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><span>&#127850;</span> CookieJar Lab</h1>
+    <div class="header-right">
+      <a href="/dashboard.html" class="nav-link" data-nav="dashboard">Dashboard</a>
+      <a href="/cookie-vault.html" class="nav-link active" data-nav="cookie-vault" data-vuln-only>Cookie Vault</a>
+      <a href="/attack-console.html" class="nav-link" data-nav="attack-console">Attack Console</a>
+      <a href="/explainer.html" class="nav-link" data-nav="learn">Learn</a>
+      <a href="/concepts.html" class="nav-link" data-nav="concepts">Concepts</a>
+      <span class="app-badge badge-vuln" id="app-badge">Vulnerable App</span>
+      <a href="/index.html" class="nav-auth-btn login-btn" id="nav-login" style="display:none;">Login</a>
+      <button class="nav-auth-btn logout-btn" id="nav-logout" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="journey-bar">
+    <div class="journey-step completed">
+      <div class="journey-dot">&#10003;</div>
+      <span>Register &amp; Login</span>
+    </div>
+    <div class="journey-connector completed"></div>
+    <div class="journey-step completed">
+      <div class="journey-dot">&#10003;</div>
+      <span>Dashboard</span>
+    </div>
+    <div class="journey-connector completed"></div>
+    <div class="journey-step active">
+      <div class="journey-dot">3</div>
+      <span>Cookie Vault</span>
+    </div>
+    <div class="journey-connector"></div>
+    <div class="journey-step">
+      <div class="journey-dot">4</div>
+      <span>Attack Console</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2 class="page-title">&#128273; Your Session Cookie  - Exposed</h2>
+    <p class="page-subtitle">
+      Because <code>httpOnly</code> is set to <code>false</code>, JavaScript can read your session cookie directly.
+      This page shows everything an infostealer malware would extract from your browser.
+    </p>
+
+    <!-- Raw Cookie -->
+    <div class="panel">
+      <h3>&#127850; Raw Session Cookie</h3>
+      <div class="cookie-raw" id="raw-cookie">Loading...</div>
+      <button class="btn btn-copy" id="copy-btn" onclick="copyCookie()">Copy Cookie to Clipboard</button>
+      <div id="copy-msg" style="display:none; margin-top: 12px; padding: 10px 14px; background: rgba(81,207,102,0.1); border: 1px solid rgba(81,207,102,0.3); border-radius: 6px; font-size: 12px; color: #69db7c; line-height: 1.5;">
+        Token copied to clipboard. Now <a href="/attack-console.html" style="color: var(--accent); font-weight: 600;">open the Attack Console</a> and paste it into the replay field.
+      </div>
+      <a id="copy-go-btn" class="btn" href="#" onclick="copyAndGo(event)" style="display:inline-block; margin-top: 8px; background: var(--accent); color: #1a1d27; text-decoration: none; font-size: 13px; padding: 10px 20px;">
+        Copy &amp; Open Attack Console &rarr;
+      </a>
+    </div>
+
+    <!-- Decoded JWT -->
+    <div class="panel">
+      <h3>&#128270; Decoded JWT Token</h3>
+      <div class="jwt-parts">
+        <div class="jwt-part header-part">
+          <h4>Header</h4>
+          <pre id="jwt-header">Loading...</pre>
+        </div>
+        <div class="jwt-part payload-part">
+          <h4>Payload (your session data)</h4>
+          <pre id="jwt-payload">Loading...</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- DevTools Cross-Reference -->
+    <div style="background: rgba(51, 154, 240, 0.1); border: 1px solid rgba(51, 154, 240, 0.3); border-radius: 8px; padding: 14px; margin-bottom: 20px; font-size: 12px; color: #74c0fc; line-height: 1.6;">
+      <strong>&#128269; DevTools check:</strong> Open <code style="background: rgba(0,0,0,0.2); padding: 2px 5px; border-radius: 3px;">F12</code> &rarr; Application &rarr; Cookies &rarr; find <code style="background: rgba(0,0,0,0.2); padding: 2px 5px; border-radius: 3px;">session</code> &mdash; you'll see the same JWT shown above. Notice HttpOnly is unchecked. Compare with the hardened app where the cookie is invisible to JavaScript.
+    </div>
+
+    <!-- Infostealer View -->
+    <div class="panel infostealer-section">
+      <h3>&#128375; What an Infostealer Sees</h3>
+      <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 16px;">
+        Infostealers read your browser's cookie store  - typically an SQLite database file.
+        Here's exactly what they would extract:
+      </p>
+
+      <div id="stolen-fields">Loading...</div>
+
+      <div class="path-info">
+        <strong>Browser cookie store locations:</strong><br>
+        Chrome: <code>%LOCALAPPDATA%\Google\Chrome\User Data\Default\Cookies</code><br>
+        Firefox: <code>%APPDATA%\Mozilla\Firefox\Profiles\*.default\cookies.sqlite</code><br>
+        macOS Chrome: <code>~/Library/Application Support/Google/Chrome/Default/Cookies</code><br>
+        <br>
+        These are SQLite databases. Infostealers like RedLine, Raccoon, and Vidar
+        read them directly  - no browser interaction needed.
+      </div>
+    </div>
+
+    <div class="explanation">
+      <strong>Why this matters:</strong> The session cookie IS your identity to the server.
+      It doesn't matter that you used a strong password. It doesn't matter that you entered a TOTP code.
+      It doesn't matter that Google OAuth verified you. Once this cookie is stolen, the attacker
+      IS you  - no password, no 2FA, no OAuth required.
+    </div>
+
+    <div class="next-step-cta">
+      <div class="next-label">Next Step</div>
+      <h3><a href="/attack-console.html">Open the Attack Console &rarr;</a></h3>
+      <p>Click "Copy &amp; Open Attack Console" above &mdash; the token will be pre-filled and ready to replay.</p>
+    </div>
+  </div>
+
+  <script>
+    let rawToken = '';
+
+    async function loadCookieInfo() {
+      try {
+        const res = await fetch('/api/cookie-info');
+        if (!res.ok) {
+          window.location.href = '/index.html';
+          return;
+        }
+
+        const data = await res.json();
+        rawToken = data.raw;
+
+        // Raw cookie
+        document.getElementById('raw-cookie').textContent = data.raw;
+
+        // Decoded JWT
+        document.getElementById('jwt-header').textContent = JSON.stringify(data.header, null, 2);
+        document.getElementById('jwt-payload').textContent = JSON.stringify(data.payload, null, 2);
+
+        // Infostealer fields
+        const fields = data.infostealerView.stolenFields;
+        const fieldsHtml = Object.entries(fields).map(([key, val]) => `
+          <div class="stolen-field">
+            <span class="key">${key}</span>
+            <span class="val">${typeof val === 'string' && val.length > 60 ? val.substring(0, 60) + '...' : val}</span>
+          </div>
+        `).join('');
+        document.getElementById('stolen-fields').innerHTML = fieldsHtml;
+
+      } catch (err) {
+        window.location.href = '/index.html';
+      }
+    }
+
+    function copyCookie() {
+      navigator.clipboard.writeText(rawToken).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        document.getElementById('copy-msg').style.display = 'block';
+      });
+    }
+
+    function copyAndGo(e) {
+      e.preventDefault();
+      navigator.clipboard.writeText(rawToken).then(() => {
+        window.location.href = '/attack-console.html?token=' + encodeURIComponent(rawToken);
+      });
+    }
+
+    async function logout() {
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.href = '/index.html';
+    }
+
+    loadCookieInfo();
+  </script>
+</body>
+</html>

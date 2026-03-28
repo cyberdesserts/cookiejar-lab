@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>">
+  <title>CookieJar Lab | Login (Hardened)</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-2: #242836;
+      --accent: #51cf66;
+      --accent-2: #69db7c;
+      --blue: #339af0;
+      --text: #e1e4eb;
+      --text-dim: #8b92a5;
+      --border: #2d3348;
+      --green: #51cf66;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    .header {
+      background: linear-gradient(135deg, #1a1d27 0%, #1a2d1e 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header h1 { font-size: 20px; }
+    .header h1 span { color: var(--accent); }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .app-badge { padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+    .badge-hard { background: var(--green); color: #0f1117; }
+    .nav-link { color: var(--text-dim); text-decoration: none; font-size: 13px; transition: color 0.2s; white-space: nowrap; }
+    .nav-link:hover { color: var(--text); }
+    .nav-link.active { color: var(--accent); }
+
+    .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+
+    .info-banner {
+      background: rgba(81, 207, 102, 0.1);
+      border: 1px solid rgba(81, 207, 102, 0.3);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 32px;
+      font-size: 13px;
+      color: #69db7c;
+      line-height: 1.6;
+    }
+
+    .auth-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+    }
+    .auth-card h2 { font-size: 16px; margin-bottom: 4px; }
+    .auth-card .subtitle { color: var(--text-dim); font-size: 12px; margin-bottom: 20px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-group input {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus { border-color: var(--accent); }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      width: 100%;
+      text-align: center;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: var(--accent); color: #0f1117; }
+    .btn-logout { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .nav-auth-btn {
+      min-width: 80px;
+      text-align: center;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .nav-auth-btn:hover { opacity: 0.85; }
+    .nav-auth-btn.login-btn {
+      background: var(--accent);
+      color: #1a1d27;
+    }
+    .nav-auth-btn.logout-btn {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-google { background: white; color: #333; border: 1px solid #dadce0; }
+    .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .btn + .btn { margin-top: 8px; }
+
+    .tabs { display: flex; gap: 0; margin-bottom: 20px; }
+    .tab {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text-dim);
+      transition: all 0.2s;
+    }
+    .tab:first-child { border-radius: 6px 0 0 6px; }
+    .tab:last-child { border-radius: 0 6px 6px 0; }
+    .tab.active { background: var(--accent); color: #0f1117; border-color: var(--accent); }
+
+    .totp-setup { display: none; text-align: center; }
+    .totp-setup img { margin: 12px 0; border-radius: 8px; }
+    .totp-setup .secret-code { background: var(--bg); padding: 8px 12px; border-radius: 4px; font-size: 13px; word-break: break-all; margin: 8px 0; color: var(--accent-2); }
+
+    .message { padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-bottom: 16px; display: none; }
+    .message.error { display: block; background: rgba(255, 71, 87, 0.1); border: 1px solid rgba(255, 71, 87, 0.3); color: #ff8a94; }
+    .message.success { display: block; background: rgba(81, 207, 102, 0.1); border: 1px solid rgba(81, 207, 102, 0.3); color: #69db7c; }
+
+    .security-note {
+      background: rgba(51, 154, 240, 0.1);
+      border: 1px solid rgba(51, 154, 240, 0.3);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 12px;
+      color: #74c0fc;
+      margin-top: 16px;
+      line-height: 1.5;
+    }
+
+    .controls-list {
+      margin-top: 12px;
+      padding: 0;
+      list-style: none;
+    }
+    .controls-list li {
+      padding: 4px 0;
+      font-size: 12px;
+      color: var(--accent-2);
+    }
+
+    .google-icon { width: 18px; height: 18px; vertical-align: middle; margin-right: 8px; }
+
+    @media (max-width: 768px) { .auth-grid { grid-template-columns: 1fr; } }
+
+    .journey-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 32px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      gap: 0;
+    }
+    .journey-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-dim);
+      opacity: 0.4;
+      white-space: nowrap;
+    }
+    .journey-step.completed { opacity: 0.7; }
+    .journey-step.active { opacity: 1; color: var(--accent); font-weight: 600; }
+    .journey-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+      border: 2px solid var(--border);
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+    .journey-step.completed .journey-dot { border-color: var(--accent); color: var(--accent); }
+    .journey-step.active .journey-dot { background: var(--accent); border-color: var(--accent); color: #0f1117; }
+    .journey-connector { width: 40px; height: 2px; background: var(--border); flex-shrink: 0; }
+    .journey-connector.completed { background: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><span>&#128274;</span> CookieJar Lab</h1>
+    <div class="header-right">
+      <a href="/dashboard.html" class="nav-link" data-nav="dashboard" style="display:none;">Dashboard</a>
+      <a href="/attack-console.html" class="nav-link" data-nav="attack-console">Attack Console</a>
+      <a href="/explainer.html" class="nav-link" data-nav="learn">Learn</a>
+      <a href="/concepts.html" class="nav-link" data-nav="concepts">Concepts</a>
+      <span class="app-badge badge-hard" id="app-badge">Hardened App</span>
+      <a href="/index.html" class="nav-auth-btn login-btn" id="nav-login">Login</a>
+      <button class="nav-auth-btn logout-btn" id="nav-logout" style="display:none;" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="journey-bar">
+    <div class="journey-step active">
+      <div class="journey-dot">1</div>
+      <span>Register &amp; Login</span>
+    </div>
+    <div class="journey-connector"></div>
+    <div class="journey-step">
+      <div class="journey-dot">2</div>
+      <span>Dashboard</span>
+    </div>
+    <div class="journey-connector"></div>
+    <div class="journey-step">
+      <div class="journey-dot">3</div>
+      <span>Attack Console</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="info-banner">
+      This is the <strong>hardened</strong> version of CookieJar Lab. Same authentication flows,
+      but with proper session security controls. Try the Attack Console after logging in  - compare results with the vulnerable app on port 3001.
+      <ul class="controls-list">
+        <li>&#9989; HttpOnly cookies  - JS cannot read them</li>
+        <li>&#9989; 15-minute JWT expiry with refresh token rotation</li>
+        <li>&#9989; Server-side session store with revocation</li>
+        <li>&#9989; Session binding to IP + User-Agent</li>
+        <li>&#9989; SameSite=Strict  - no cross-site requests</li>
+        <li>&#9989; Replay attempt logging + anomaly detection</li>
+      </ul>
+    </div>
+
+    <div class="auth-grid">
+      <div class="auth-card">
+        <h2>Flow A: Password + TOTP 2FA</h2>
+        <p class="subtitle">Same login flow  - hardened session management</p>
+
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab('login')">Login</div>
+          <div class="tab" onclick="switchTab('register')">Register</div>
+        </div>
+
+        <div id="msg-local" class="message"></div>
+
+        <form id="login-form" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="login-username" placeholder="username" autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="login-password" placeholder="password" autocomplete="current-password">
+          </div>
+          <div class="form-group" id="totp-group" style="display:none;">
+            <label>TOTP Code</label>
+            <input type="text" id="login-totp" placeholder="000000" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code">
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+
+        <form id="register-form" style="display:none;" onsubmit="handleRegister(event)">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="reg-username" placeholder="Pick a username" autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="reg-email" placeholder="you@example.com">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="reg-password" placeholder="Pick a password" autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn btn-primary">Register &amp; Setup 2FA</button>
+        </form>
+
+        <div id="totp-setup" class="totp-setup">
+          <h3 style="margin-bottom: 8px;">Scan QR code with your Authenticator app</h3>
+          <img id="totp-qr" alt="TOTP QR Code" width="200" height="200">
+          <p style="color: var(--text-dim); font-size: 12px; margin-bottom: 4px;">Or enter this secret manually:</p>
+          <div class="secret-code" id="totp-secret"></div>
+          <button class="btn btn-secondary" onclick="totpSetupDone()" style="margin-top: 12px;">Done  - Go to Login</button>
+        </div>
+      </div>
+
+      <div class="auth-card">
+        <h2>Flow B: Google OAuth</h2>
+        <p class="subtitle">Simulated OAuth 2.0  - hardened session after auth</p>
+
+        <div id="msg-oauth" class="message"></div>
+
+        <button class="btn btn-google" onclick="startOAuth()">
+          <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Sign in with Google
+        </button>
+
+        <div class="security-note">
+          <strong>Hardened difference:</strong> After Google OAuth confirms your identity, this app issues a session cookie with:
+          <strong>httpOnly: true</strong>, <strong>15-minute expiry</strong>, <strong>server-side session tracking</strong>,
+          and <strong>device binding</strong>. Even if malware runs on your machine, it cannot read the cookie via JavaScript.
+        </div>
+      </div>
+    </div>
+
+    <!-- Reset Lab Database -->
+    <div style="text-align: center; margin-top: 32px;">
+      <button class="btn btn-secondary" onclick="resetDatabase()" style="width: auto; font-size: 12px; padding: 8px 16px; opacity: 0.7;">
+        Reset Lab Database
+      </button>
+      <div id="msg-reset" class="message" style="margin-top: 12px;"></div>
+    </div>
+  </div>
+
+  <script>
+    (async function checkAuth() {
+      try {
+        const res = await fetch('/api/me');
+        if (res.ok) window.location.href = '/dashboard.html';
+      } catch (e) {}
+    })();
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach((t, i) => {
+        t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
+      });
+      document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+      document.getElementById('totp-setup').style.display = 'none';
+      clearMessages();
+    }
+
+    function showMessage(id, text, type) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'message ' + type;
+    }
+
+    function clearMessages() {
+      document.querySelectorAll('.message').forEach(m => { m.className = 'message'; m.textContent = ''; });
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      clearMessages();
+      const username = document.getElementById('reg-username').value;
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-password').value;
+
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, email }),
+        });
+        const data = await res.json();
+        if (!res.ok) { showMessage('msg-local', data.error, 'error'); return; }
+
+        document.getElementById('register-form').style.display = 'none';
+        document.getElementById('totp-setup').style.display = 'block';
+        document.getElementById('totp-qr').src = data.totp.qrCode;
+        document.getElementById('totp-secret').textContent = data.totp.secret;
+      } catch (err) {
+        showMessage('msg-local', 'Network error  - is the server running?', 'error');
+      }
+    }
+
+    function totpSetupDone() {
+      document.getElementById('totp-setup').style.display = 'none';
+      switchTab('login');
+      showMessage('msg-local', 'Registration complete! Log in with your credentials + TOTP code.', 'success');
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      clearMessages();
+      const username = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
+      const totpCode = document.getElementById('login-totp').value;
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, totpCode }),
+        });
+        const data = await res.json();
+
+        if (data.requireTotp) {
+          document.getElementById('totp-group').style.display = 'block';
+          showMessage('msg-local', 'Enter the 6-digit code from your Authenticator app.', 'error');
+          return;
+        }
+        if (!res.ok) { showMessage('msg-local', data.error, 'error'); return; }
+        window.location.href = '/dashboard.html';
+      } catch (err) {
+        showMessage('msg-local', 'Network error  - is the server running?', 'error');
+      }
+    }
+
+    function startOAuth() {
+      window.location.href = '/oauth/google/authorize?redirect_uri=/oauth/google/callback';
+    }
+
+    async function resetDatabase() {
+      if (!confirm('This will delete all registered users, sessions, and logs. Continue?')) return;
+      try {
+        const res = await fetch('/api/reset-db', { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) {
+          showMessage('msg-reset', data.message, 'success');
+        } else {
+          showMessage('msg-reset', data.error, 'error');
+        }
+      } catch (err) {
+        showMessage('msg-reset', 'Network error  - is the server running?', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

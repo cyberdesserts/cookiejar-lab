@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍪</text></svg>">
+  <title>Concepts | CookieJar Lab</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-2: #242836;
+      --accent: #ff6b6b;
+      --accent-2: #ffa36b;
+      --green: #51cf66;
+      --blue: #339af0;
+      --text: #e1e4eb;
+      --text-dim: #8b92a5;
+      --border: #2d3348;
+      --danger: #ff4757;
+      --purple: #b197fc;
+      --header-gradient: linear-gradient(135deg, #1a1d27 0%, #2d1a2e 100%);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Roboto Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .header {
+      background: var(--header-gradient);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      line-height: normal;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .header h1 span {
+      color: var(--accent);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-link {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 13px;
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+
+    .nav-link:hover {
+      color: var(--text);
+    }
+
+    .nav-link.active {
+      color: var(--accent);
+    }
+
+    .app-badge {
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .badge-vuln {
+      background: var(--danger);
+      color: #1a1d27;
+    }
+
+    .badge-hard {
+      background: var(--green);
+      color: #0f1117;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      opacity: 0.85;
+    }
+
+    .btn-logout {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .nav-auth-btn {
+      min-width: 80px;
+      text-align: center;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .nav-auth-btn:hover { opacity: 0.85; }
+    .nav-auth-btn.login-btn {
+      background: var(--accent);
+      color: #1a1d27;
+    }
+    .nav-auth-btn.logout-btn {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .nav-link.disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .section-nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      position: sticky;
+      top: 0;
+      z-index: 49;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .section-nav a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 11px;
+      padding: 10px 14px;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .section-nav a:hover {
+      color: var(--text);
+      border-bottom-color: var(--border);
+    }
+
+    .section-nav a.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .container {
+      max-width: 940px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .section {
+      padding: 48px 0 24px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .section-subtitle {
+      color: var(--text-dim);
+      font-size: 13px;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .card h3 {
+      font-size: 15px;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .card p, .card li {
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text-dim);
+    }
+
+    .card p {
+      margin-bottom: 10px;
+    }
+
+    .card p:last-child {
+      margin-bottom: 0;
+    }
+
+    .card strong {
+      color: var(--text);
+    }
+
+    .card code {
+      background: var(--surface-2);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--accent-2);
+      font-size: 12px;
+    }
+
+    .card ul, .card ol {
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+
+    .card li {
+      padding: 3px 0;
+    }
+
+    .card pre {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 11px;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: var(--text-dim);
+      margin: 12px 0;
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: 12px 0;
+    }
+
+    .card table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .card table th {
+      background: var(--surface-2);
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 11px;
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .card table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-dim);
+      vertical-align: top;
+    }
+
+    .card table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .card table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .comparison-table th {
+      background: var(--surface-2);
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 11px;
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .comparison-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: top;
+    }
+
+    .comparison-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .comparison-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .callout {
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 12px;
+      line-height: 1.6;
+      margin: 16px 0;
+    }
+
+    .callout-info {
+      background: rgba(51, 154, 240, 0.1);
+      border: 1px solid rgba(51, 154, 240, 0.3);
+      color: #74c0fc;
+    }
+
+    .callout-warn {
+      background: rgba(255, 163, 107, 0.1);
+      border: 1px solid rgba(255, 163, 107, 0.3);
+      color: #ffa36b;
+    }
+
+    .callout-danger {
+      background: rgba(255, 71, 87, 0.1);
+      border: 1px solid rgba(255, 71, 87, 0.3);
+      color: #ff8a94;
+    }
+
+    .callout-success {
+      background: rgba(81, 207, 102, 0.1);
+      border: 1px solid rgba(81, 207, 102, 0.3);
+      color: #69db7c;
+    }
+
+    .callout strong {
+      color: inherit;
+    }
+
+    .callout code {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    .jwt-visual {
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 12px 0;
+    }
+
+    .jwt-visual-part {
+      padding: 12px 16px;
+    }
+
+    .jwt-visual-part .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .jwt-visual-part .content {
+      font-size: 11px;
+      word-break: break-all;
+      opacity: 0.8;
+    }
+
+    .jwt-visual .part-header {
+      background: rgba(255, 107, 107, 0.12);
+    }
+
+    .jwt-visual .part-header .label {
+      color: var(--accent);
+    }
+
+    .jwt-visual .part-header .content {
+      color: #ff8a8a;
+    }
+
+    .jwt-visual .part-payload {
+      background: rgba(255, 163, 107, 0.12);
+    }
+
+    .jwt-visual .part-payload .label {
+      color: var(--accent-2);
+    }
+
+    .jwt-visual .part-payload .content {
+      color: #ffb980;
+    }
+
+    .jwt-visual .part-signature {
+      background: rgba(177, 151, 252, 0.12);
+    }
+
+    .jwt-visual .part-signature .label {
+      color: var(--purple);
+    }
+
+    .jwt-visual .part-signature .content {
+      color: #c4aeff;
+    }
+
+    .model-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .model-card h3 {
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .model-card .model-subtitle {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+
+    .model-card .model-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .model-card .model-pros, .model-card .model-cons, .model-card .model-security {
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .model-card .model-pros {
+      background: rgba(81, 207, 102, 0.06);
+      border: 1px solid rgba(81, 207, 102, 0.15);
+      color: var(--text-dim);
+    }
+
+    .model-card .model-cons {
+      background: rgba(255, 71, 87, 0.06);
+      border: 1px solid rgba(255, 71, 87, 0.15);
+      color: var(--text-dim);
+    }
+
+    .model-card .model-security {
+      background: rgba(51, 154, 240, 0.06);
+      border: 1px solid rgba(51, 154, 240, 0.15);
+      color: var(--text-dim);
+    }
+
+    .model-card .model-pros strong {
+      color: #69db7c;
+    }
+
+    .model-card .model-cons strong {
+      color: #ff8a94;
+    }
+
+    .model-card .model-security strong {
+      color: #74c0fc;
+    }
+
+    .model-card .verdict {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--accent-2);
+      font-weight: 600;
+    }
+
+    .model-card .model-what, .model-card .model-used {
+      margin-bottom: 12px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text-dim);
+    }
+
+    .model-card strong {
+      color: var(--text);
+    }
+
+    .model-card code {
+      background: var(--surface-2);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--accent-2);
+      font-size: 12px;
+    }
+
+    .ref-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .ref-list li {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ref-list li:last-child {
+      border-bottom: none;
+    }
+
+    .ref-list a {
+      color: var(--blue);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .ref-list a:hover {
+      text-decoration: underline;
+    }
+
+    .ref-list .ref-desc {
+      color: var(--text-dim);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 0;
+      margin-top: 64px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 11px;
+    }
+
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    .choice-section {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 16px;
+    }
+
+    .choice-section h4 {
+      font-size: 14px;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .choice-section ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .choice-section li {
+      padding: 8px 0;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .choice-section strong {
+      color: var(--text);
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        padding: 14px 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .header-right {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+
+      .section-nav {
+        padding: 0 16px;
+      }
+
+      .container {
+        padding: 0 14px;
+      }
+
+      .section-nav a {
+        font-size: 10px;
+        padding: 8px 10px;
+      }
+
+      .model-card .model-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section {
+        padding: 32px 0 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><span id="header-icon">&#127850;</span> CookieJar Lab</h1>
+    <div class="header-right">
+      <a href="/dashboard.html" class="nav-link disabled" data-nav="dashboard" id="nav-dashboard">Dashboard</a>
+      <a href="/cookie-vault.html" class="nav-link disabled" data-nav="cookie-vault" data-vuln-only id="nav-vault">Cookie Vault</a>
+      <a href="/attack-console.html" class="nav-link" data-nav="attack-console" id="nav-attack">Attack Console</a>
+      <a href="/explainer.html" class="nav-link" data-nav="learn">Learn</a>
+      <a href="/concepts.html" class="nav-link active" data-nav="concepts">Concepts</a>
+      <span class="app-badge badge-vuln" id="app-badge">Vulnerable App</span>
+      <a href="/index.html" class="nav-auth-btn login-btn" id="nav-login">Login</a>
+      <button class="nav-auth-btn logout-btn" id="nav-logout" style="display:none;" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <nav class="section-nav" id="section-nav">
+    <a href="#cookies">Cookies</a>
+    <a href="#jwt">JWT</a>
+    <a href="#session-models">Session Models</a>
+    <a href="#comparison">Comparison</a>
+    <a href="#references">References</a>
+  </nav>
+
+  <div class="container">
+    <!-- Section 1: Cookies -->
+    <section class="section" id="cookies">
+      <h2 class="section-title">What Are Cookies</h2>
+      <p class="section-subtitle">The foundational technology behind web sessions  - from 1994 to today.</p>
+
+      <div class="card">
+        <h3>History & Origin</h3>
+        <p>Lou Montulli at Netscape invented cookies in 1994 to solve the "shopping cart problem"  - HTTP is stateless, so there was no way to remember items between page loads.</p>
+        <p>The name comes from "magic cookie"  - a Unix/computing term for an opaque data token passed between programs.</p>
+        <p>Originally specified in RFC 2109 (1997), updated in RFC 2965, and finalized as <strong>RFC 6265 (2011)</strong>  - the current standard.</p>
+        <p>Cookies predated JavaScript by one year  - they're a native HTTP feature, not a JavaScript feature.</p>
+      </div>
+
+      <div class="card">
+        <h3>How Cookies Work in HTTP</h3>
+        <p>Server sends <code>Set-Cookie: session=abc123; Path=/; HttpOnly</code> in the HTTP response headers.</p>
+        <p>Browser stores the cookie and automatically attaches it to every subsequent request to that domain via the <code>Cookie: session=abc123</code> header.</p>
+        <p>This is automatic browser behavior  - no JavaScript is needed.</p>
+        <p>Cookies are scoped by domain and path  - a cookie set for <code>example.com</code> won't be sent to <code>other.com</code>.</p>
+        <p>Maximum cookie size: ~4KB per cookie, ~180 cookies per domain.</p>
+        <pre>  Browser                         Server
+     |                              |
+     |  POST /login (credentials)   |
+     |----------------------------->|
+     |                              |
+     |  200 OK                      |
+     |  Set-Cookie: session=xyz     |
+     |<-----------------------------|
+     |                              |
+     |  GET /dashboard              |
+     |  Cookie: session=xyz         |
+     |----------------------------->|
+     |                              |
+     |  200 OK (authenticated)      |
+     |<-----------------------------|</pre>
+      </div>
+
+      <div class="card">
+        <h3>Types of Cookies</h3>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Lifetime</th>
+                <th>Created By</th>
+                <th>Privacy Impact</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Session Cookie</strong></td>
+                <td>Until browser closes</td>
+                <td>Any domain</td>
+                <td>Low  - temporary</td>
+              </tr>
+              <tr>
+                <td><strong>Persistent Cookie</strong></td>
+                <td>Set expiry date (days/years)</td>
+                <td>Any domain</td>
+                <td>Medium  - survives restart</td>
+              </tr>
+              <tr>
+                <td><strong>First-Party Cookie</strong></td>
+                <td>Varies</td>
+                <td>Same domain as URL bar</td>
+                <td>Low  - expected behavior</td>
+              </tr>
+              <tr>
+                <td><strong>Third-Party Cookie</strong></td>
+                <td>Varies</td>
+                <td>Different domain (ads, trackers)</td>
+                <td>High  - cross-site tracking</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-warn">
+          <strong>Note:</strong> Third-party cookies are being phased out. Chrome's Privacy Sandbox, Firefox's Total Cookie Protection, and Safari's ITP all restrict them.
+        </div>
+        <div class="callout callout-danger">
+          <strong>Security implication:</strong> Session cookies vanish when browser closes, but infostealers read the cookie store file while the browser is open  - "session only" provides no protection against malware.
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Cookie Attributes Reference</h3>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Attribute</th>
+                <th>Example</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Domain</strong></td>
+                <td><code>Domain=example.com</code></td>
+                <td>Which domains receive the cookie. Omit for same-origin only.</td>
+              </tr>
+              <tr>
+                <td><strong>Path</strong></td>
+                <td><code>Path=/api</code></td>
+                <td>URL path scope. <code>/</code> means the entire site.</td>
+              </tr>
+              <tr>
+                <td><strong>Expires</strong></td>
+                <td><code>Expires=Thu, 01 Jan 2026 00:00:00 GMT</code></td>
+                <td>Absolute expiration date.</td>
+              </tr>
+              <tr>
+                <td><strong>Max-Age</strong></td>
+                <td><code>Max-Age=86400</code></td>
+                <td>Seconds until expiry (overrides Expires).</td>
+              </tr>
+              <tr>
+                <td><strong>Secure</strong></td>
+                <td><code>Secure</code></td>
+                <td>Only sent over HTTPS connections.</td>
+              </tr>
+              <tr>
+                <td><strong>HttpOnly</strong></td>
+                <td><code>HttpOnly</code></td>
+                <td>Inaccessible to JavaScript (<code>document.cookie</code>).</td>
+              </tr>
+              <tr>
+                <td><strong>SameSite</strong></td>
+                <td><code>SameSite=Strict</code></td>
+                <td>Controls cross-site sending. Strict/Lax/None.</td>
+              </tr>
+              <tr>
+                <td><strong>__Host- prefix</strong></td>
+                <td><code>__Host-session=abc</code></td>
+                <td>Must be Secure, Path=/, no Domain  - strongest binding.</td>
+              </tr>
+              <tr>
+                <td><strong>__Secure- prefix</strong></td>
+                <td><code>__Secure-session=abc</code></td>
+                <td>Must have Secure flag. Weaker than <code>__Host-</code>.</td>
+              </tr>
+              <tr>
+                <td><strong>Partitioned</strong></td>
+                <td><code>Partitioned</code></td>
+                <td>CHIPS  - isolates cookie per top-level site. Part of Privacy Sandbox.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Where Cookies Are Stored</h3>
+        <p>Browsers store cookies in SQLite databases on disk:</p>
+        <ul>
+          <li><strong>Chrome:</strong> <code>~/Library/Application Support/Google/Chrome/Default/Cookies</code> (macOS), <code>%LOCALAPPDATA%\Google\Chrome\User Data\Default\Cookies</code> (Windows)</li>
+          <li><strong>Firefox:</strong> <code>&lt;profile&gt;/cookies.sqlite</code></li>
+          <li><strong>Safari:</strong> <code>~/Library/Cookies/Cookies.binarycookies</code></li>
+        </ul>
+        <p>Infostealers (RedLine, Raccoon, Vidar, Lumma) read these SQLite files directly  - no browser interaction needed.</p>
+        <p>Chrome added App-Bound Encryption (v127+) to protect cookies at rest, but infostealers quickly adapted by running code within the browser process context.</p>
+      </div>
+    </section>
+
+    <!-- Section 2: JWT -->
+    <section class="section" id="jwt">
+      <h2 class="section-title">What Is JWT</h2>
+      <p class="section-subtitle">JSON Web Tokens  - the dominant format for modern session tokens and API credentials.</p>
+
+      <div class="card">
+        <h3>JWT Structure</h3>
+        <p>A JWT has three Base64URL-encoded parts separated by dots: <code>header.payload.signature</code></p>
+        <div class="jwt-visual">
+          <div class="jwt-visual-part part-header">
+            <div class="label">Header</div>
+            <div class="content">{"alg": "HS256", "typ": "JWT"}</div>
+          </div>
+          <div class="jwt-visual-part part-payload">
+            <div class="label">Payload</div>
+            <div class="content">{"sub": "1234", "name": "alice", "exp": 1711500000}</div>
+          </div>
+          <div class="jwt-visual-part part-signature">
+            <div class="label">Signature</div>
+            <div class="content">HMAC-SHA256(base64url(header) + "." + base64url(payload), secret)</div>
+          </div>
+        </div>
+        <ul>
+          <li><strong style="color: var(--accent);">Header</strong>  - algorithm and token type</li>
+          <li><strong style="color: var(--accent-2);">Payload</strong>  - claims (data)</li>
+          <li><strong style="color: var(--purple);">Signature</strong>  - verifies integrity and authenticity</li>
+        </ul>
+        <div class="callout callout-danger">
+          <strong>CRITICAL:</strong> Encoding ≠ Encryption. Anyone can decode a JWT's header and payload  - they're Base64URL-encoded, not encrypted. The signature only proves the token wasn't tampered with.
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>How JWT Authentication Works</h3>
+        <p><strong>Step-by-step flow:</strong></p>
+        <ol>
+          <li>Client sends credentials (username/password, OAuth token, etc.)</li>
+          <li>Server verifies credentials against its database</li>
+          <li>Server creates JWT with user data, signs it with a secret key</li>
+          <li>Server sends JWT to client (usually as a cookie or in a response body)</li>
+          <li>Client sends JWT with every request (Cookie header or Authorization: Bearer)</li>
+          <li>Server decodes JWT, verifies signature, checks expiry  - grants or denies access</li>
+        </ol>
+        <div class="callout callout-info">
+          <strong>Contrast with opaque tokens:</strong> An opaque token (like <code>sess_a8f3k2j</code>) has no data  - the server must look it up in a database. JWTs are self-contained  - the server can verify them without a database lookup (stateless verification).
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>JWT Claims Reference</h3>
+        <p>Registered claims from RFC 7519:</p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Claim</th>
+                <th>Name</th>
+                <th>Purpose</th>
+                <th>Example</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>iss</code></td>
+                <td>Issuer</td>
+                <td>Who created the token</td>
+                <td><code>"https://auth.example.com"</code></td>
+              </tr>
+              <tr>
+                <td><code>sub</code></td>
+                <td>Subject</td>
+                <td>Who the token is about</td>
+                <td><code>"user_12345"</code></td>
+              </tr>
+              <tr>
+                <td><code>aud</code></td>
+                <td>Audience</td>
+                <td>Who the token is for</td>
+                <td><code>"https://api.example.com"</code></td>
+              </tr>
+              <tr>
+                <td><code>exp</code></td>
+                <td>Expiration</td>
+                <td>When the token expires</td>
+                <td><code>1711500000</code> (Unix timestamp)</td>
+              </tr>
+              <tr>
+                <td><code>nbf</code></td>
+                <td>Not Before</td>
+                <td>When the token becomes valid</td>
+                <td><code>1711400000</code></td>
+              </tr>
+              <tr>
+                <td><code>iat</code></td>
+                <td>Issued At</td>
+                <td>When the token was created</td>
+                <td><code>1711400000</code></td>
+              </tr>
+              <tr>
+                <td><code>jti</code></td>
+                <td>JWT ID</td>
+                <td>Unique token identifier</td>
+                <td><code>"abc-123-def"</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Custom claims:</strong> Applications can add any custom claims (userId, email, role, etc.). Keep payloads small  - every claim adds to token size, and tokens are sent with every request.</p>
+      </div>
+
+      <div class="card">
+        <h3>Signing Algorithms</h3>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Algorithm</th>
+                <th>Type</th>
+                <th>Key</th>
+                <th>Use Case</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>HS256</strong></td>
+                <td>Symmetric</td>
+                <td>Shared secret</td>
+                <td>Single server apps. This lab uses HS256.</td>
+              </tr>
+              <tr>
+                <td><strong>RS256</strong></td>
+                <td>Asymmetric</td>
+                <td>RSA key pair</td>
+                <td>Microservices  - public key can verify without the private key.</td>
+              </tr>
+              <tr>
+                <td><strong>ES256</strong></td>
+                <td>Asymmetric</td>
+                <td>ECDSA key pair</td>
+                <td>Smaller keys, same security as RS256. Mobile-friendly.</td>
+              </tr>
+              <tr>
+                <td><strong>EdDSA</strong></td>
+                <td>Asymmetric</td>
+                <td>Ed25519 key pair</td>
+                <td>Modern, fast, compact. Growing adoption.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-danger">
+          <strong>The <code>alg: "none"</code> attack:</strong> Early JWT libraries accepted tokens with <code>"alg": "none"</code>  - meaning no signature at all. An attacker could forge any token by setting the algorithm to "none" and stripping the signature. Modern libraries reject <code>alg: none</code> by default, but it remains a classic example of why you must validate JWT configuration server-side.
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>JWT Footprint in Modern Apps</h3>
+        <p>JWT is everywhere. Understanding its use cases helps you assess attack surfaces:</p>
+        <ul>
+          <li><strong>Web Sessions:</strong> The most visible use. JWTs store user identity in session cookies (exactly what this lab demonstrates).</li>
+          <li><strong>Mobile Authentication:</strong> Mobile apps store JWTs in secure storage (iOS Keychain, Android Keystore) and send them as Bearer tokens.</li>
+          <li><strong>Microservices Communication:</strong> Service A calls Service B with a JWT. Service B verifies the signature without calling an auth server  - critical for low-latency service-to-service calls.</li>
+          <li><strong>OAuth 2.0 / OIDC:</strong> OAuth access tokens are often JWTs. OIDC ID tokens are always JWTs. When you "Sign in with Google," the ID token proving your identity is a JWT.</li>
+          <li><strong>API Gateways:</strong> Kong, AWS API Gateway, Cloudflare Access  - all validate JWTs at the edge before requests reach your backend.</li>
+          <li><strong>SSO (Single Sign-On):</strong> Okta, Auth0, Azure AD issue JWTs. One login, many applications  - each app verifies the same JWT.</li>
+          <li><strong>Serverless Authorizers:</strong> AWS Lambda authorizers, Cloudflare Workers  - validate JWTs without a running server.</li>
+          <li><strong>Webhook Verification:</strong> Services sign webhook payloads with JWTs so recipients can verify authenticity.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Common JWT Pitfalls</h3>
+        <ol>
+          <li><strong>Storing secrets in the payload</strong>  - JWTs are not encrypted. Anything in the payload is visible to anyone who decodes it. Never put passwords, API keys, or PII in JWT payloads.</li>
+          <li><strong>No revocation mechanism</strong>  - A stateless JWT is valid until it expires. You can't "log out" a stolen JWT. Mitigation: short expiry + refresh tokens + server-side session store.</li>
+          <li><strong>Token bloat</strong>  - Every claim adds bytes. JWTs are sent with every request. A 2KB JWT in a cookie means 2KB of extra data on every single HTTP request.</li>
+          <li><strong>Algorithm confusion attacks</strong>  - If the server accepts both HS256 (symmetric) and RS256 (asymmetric), an attacker can sign a forged token with the RS256 public key using HS256. Modern libraries mitigate this by requiring explicit algorithm configuration.</li>
+          <li><strong>Long expiry times</strong>  - A 7-day JWT (like this lab's vulnerable app) gives attackers a huge replay window. Use short-lived tokens (15 minutes or less) with refresh token rotation.</li>
+          <li><strong>Weak signing keys</strong>  - HS256 with a short or guessable secret can be brute-forced. Use cryptographically random keys of at least 256 bits.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Section 3: Session Models -->
+    <section class="section" id="session-models">
+      <h2 class="section-title">Session Models Compared</h2>
+      <p class="section-subtitle">Six approaches to managing user sessions  - each with different trade-offs in security, scalability, and complexity.</p>
+
+      <div class="model-card">
+        <h3>Stateless JWT</h3>
+        <div class="model-subtitle">Token contains all session data. Server verifies signature only  - no database lookup.</div>
+        <p class="model-what"><strong>Used in:</strong> This lab's vulnerable app. Many SPAs. Early Node.js/Express tutorials.</p>
+        <div class="model-grid">
+          <div class="model-pros">
+            <strong>Pros:</strong> Horizontally scalable (any server can verify), no session store infrastructure, fast verification.
+          </div>
+          <div class="model-cons">
+            <strong>Cons:</strong> Cannot revoke individual sessions (token valid until expiry), large tokens, payload visible to client.
+          </div>
+        </div>
+        <div class="model-security">
+          <strong>Security:</strong> Stolen token = full access until expiry. No way to invalidate on logout or password change. 7-day tokens are common and dangerous.
+        </div>
+        <p class="verdict">Verdict: Simple but dangerous as sole session mechanism. Fine for short-lived API tokens; risky for web sessions.</p>
+      </div>
+
+      <div class="model-card">
+        <h3>Server-Side Sessions (Opaque Tokens)</h3>
+        <div class="model-subtitle">Server generates a random session ID, stores session data in a database. Cookie contains only the opaque ID.</div>
+        <p class="model-what"><strong>Used in:</strong> Django, Rails, PHP (default), Express + express-session, Laravel.</p>
+        <div class="model-grid">
+          <div class="model-pros">
+            <strong>Pros:</strong> Instant revocation (delete session from store), tiny cookies (~32 bytes), no sensitive data in cookie, full server control.
+          </div>
+          <div class="model-cons">
+            <strong>Cons:</strong> Every request requires a session store lookup (adds latency), session store is a single point of failure, horizontal scaling requires shared store (Redis, database).
+          </div>
+        </div>
+        <div class="model-security">
+          <strong>Security:</strong> Stolen session ID still grants access, BUT: server can revoke immediately on logout, can enforce concurrent session limits, can detect anomalies server-side.
+        </div>
+        <p class="verdict">Verdict: The tried-and-true approach. Higher operational overhead but much better security posture than stateless JWT.</p>
+      </div>
+
+      <div class="model-card">
+        <h3>JWT + Server-Side Hybrid</h3>
+        <div class="model-subtitle">Short-lived JWT (15 min) for request authentication + server-side session store for revocation + refresh token rotation for renewal.</div>
+        <p class="model-what"><strong>Used in:</strong> This lab's hardened app. Auth0, Firebase Auth, many production systems.</p>
+        <div class="model-grid">
+          <div class="model-pros">
+            <strong>Pros:</strong> Fast verification (JWT signature check), revocable (server-side store), short replay window, refresh rotation detects theft.
+          </div>
+          <div class="model-cons">
+            <strong>Cons:</strong> More complex to implement correctly, still requires session store, refresh token logic adds code.
+          </div>
+        </div>
+        <div class="model-security">
+          <strong>Security:</strong> Multiple defense layers. Stolen access token expires in minutes. Stolen refresh token triggers rotation detection. Server-side revocation as backstop.
+        </div>
+        <p class="verdict">Verdict: Best of both worlds for most production web applications. The approach this lab recommends.</p>
+      </div>
+
+      <div class="model-card">
+        <h3>Token-Bound Sessions (DBSC)</h3>
+        <div class="model-subtitle">Device Bound Session Credentials  - cryptographically binds sessions to hardware using the device's TPM.</div>
+        <p class="model-what"><strong>How it works:</strong> The browser generates a key pair in the TPM. The public key is registered with the server. Every session request includes a proof-of-possession signed by the private key. The private key never leaves the hardware.</p>
+        <p class="model-what"><strong>Status:</strong> Chrome Origin Trial. Not yet widely available.</p>
+        <div class="model-grid">
+          <div class="model-pros">
+            <strong>Pros:</strong> Stolen cookie is useless without the hardware key. Defeats all infostealer attacks that exfiltrate cookies.
+          </div>
+          <div class="model-cons">
+            <strong>Cons:</strong> Requires browser support (Chrome only for now), requires server-side changes, TPM availability varies, doesn't work across devices.
+          </div>
+        </div>
+        <div class="model-security">
+          <strong>Security:</strong> The strongest protection against session theft. Eliminates the entire class of cookie replay attacks.
+        </div>
+        <p class="verdict">Verdict: The future of session security. Watch for browser adoption.</p>
+      </div>
+
+      <div class="model-card">
+        <h3>Backend-for-Frontend (BFF)</h3>
+        <div class="model-subtitle">A server-side proxy between the browser and the API. The BFF holds the actual access/refresh tokens. Tokens never reach the browser.</div>
+        <p class="model-what"><strong>Used in:</strong> Duende BFF, Azure AD + MSAL.js with proxy, many enterprise SPAs.</p>
+        <div class="model-grid">
+          <div class="model-pros">
+            <strong>Pros:</strong> Tokens never exposed to client-side JavaScript or browser storage. Eliminates client-side token management. XSS can't steal what isn't there.
+          </div>
+          <div class="model-cons">
+            <strong>Cons:</strong> Additional infrastructure (proxy server), adds latency per request, more complex deployment.
+          </div>
+        </div>
+        <div class="model-security">
+          <strong>Security:</strong> Very strong for SPAs. The browser only sees an httpOnly session cookie to the BFF. Even if XSS runs on the page, there are no tokens to steal.
+        </div>
+        <p class="verdict">Verdict: Excellent choice for SPAs that need OAuth tokens. Eliminates the "where do I store my token?" problem.</p>
+      </div>
+
+      <div class="model-card">
+        <h3>Mutual TLS (mTLS)</h3>
+        <div class="model-subtitle">Both the server AND the client present TLS certificates. The client certificate proves device identity at the transport layer.</div>
+        <p class="model-what"><strong>Used in:</strong> Service-to-service (microservices mesh), banking/financial APIs, corporate VPNs, IoT devices.</p>
+        <div class="model-grid">
+          <div class="model-pros">
+            <strong>Pros:</strong> Strongest device binding  - certificate theft requires private key extraction. No cookies or tokens involved. Works at the TLS layer (below HTTP).
+          </div>
+          <div class="model-cons">
+            <strong>Cons:</strong> Certificate management overhead (issuance, rotation, revocation), impractical for browsers (users can't manage certificates), CRL/OCSP infrastructure needed.
+          </div>
+        </div>
+        <div class="model-security">
+          <strong>Security:</strong> Extremely strong for controlled environments. A stolen session is useless without the client certificate's private key.
+        </div>
+        <p class="verdict">Verdict: Ideal for service-to-service communication. Not practical for browser-based consumer web apps.</p>
+      </div>
+    </section>
+
+    <!-- Section 4: Comparison -->
+    <section class="section" id="comparison">
+      <h2 class="section-title">Side-by-Side Comparison</h2>
+      <p class="section-subtitle">How each session model stacks up across key dimensions.</p>
+
+      <div class="table-scroll">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Revocable?</th>
+              <th>Scalable?</th>
+              <th>Theft Protection</th>
+              <th>Complexity</th>
+              <th>Best For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Stateless JWT</strong></td>
+              <td>No (until expiry)</td>
+              <td>Excellent</td>
+              <td>None</td>
+              <td>Low</td>
+              <td>Short-lived API tokens</td>
+            </tr>
+            <tr>
+              <td><strong>Server-Side Sessions</strong></td>
+              <td>Yes (instant)</td>
+              <td>Moderate (needs shared store)</td>
+              <td>Revocation only</td>
+              <td>Low-Medium</td>
+              <td>Traditional web apps</td>
+            </tr>
+            <tr>
+              <td><strong>JWT + Server Hybrid</strong></td>
+              <td>Yes</td>
+              <td>Good</td>
+              <td>Multi-layer</td>
+              <td>Medium</td>
+              <td>Production web apps</td>
+            </tr>
+            <tr>
+              <td><strong>DBSC (Token Binding)</strong></td>
+              <td>Yes</td>
+              <td>Good</td>
+              <td>Hardware-bound</td>
+              <td>High (new spec)</td>
+              <td>Future browsers</td>
+            </tr>
+            <tr>
+              <td><strong>BFF Pattern</strong></td>
+              <td>Yes</td>
+              <td>Good</td>
+              <td>Tokens never reach client</td>
+              <td>Medium-High</td>
+              <td>SPAs with OAuth</td>
+            </tr>
+            <tr>
+              <td><strong>mTLS</strong></td>
+              <td>Yes (cert revocation)</td>
+              <td>Good</td>
+              <td>Certificate-bound</td>
+              <td>High</td>
+              <td>Service-to-service</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="choice-section">
+        <h4>Which Model Should You Choose?</h4>
+        <ul>
+          <li><strong>Building a traditional web app?</strong> Start with server-side sessions. Simple, secure, battle-tested.</li>
+          <li><strong>Building an SPA that needs OAuth tokens?</strong> Use the BFF pattern. Don't store tokens in localStorage.</li>
+          <li><strong>Need stateless verification at scale?</strong> Use JWT + server-side hybrid. Short-lived access tokens + refresh rotation.</li>
+          <li><strong>Service-to-service communication?</strong> Use mTLS or signed JWTs with short expiry.</li>
+          <li><strong>Want the strongest browser session protection?</strong> Watch DBSC development. Deploy when available.</li>
+          <li><strong>Whatever you choose:</strong> Use httpOnly cookies, short token lifetimes, and a server-side revocation mechanism.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Section 5: References -->
+    <section class="section" id="references">
+      <h2 class="section-title">Further Reading</h2>
+      <p class="section-subtitle">Standards, specifications, and recommended resources.</p>
+
+      <ul class="ref-list">
+        <li>
+          <a href="https://datatracker.ietf.org/doc/html/rfc6265" target="_blank">RFC 6265  - HTTP State Management Mechanism (Cookies)</a>
+          <div class="ref-desc">The authoritative specification for HTTP cookies, defining how they work and their security properties.</div>
+        </li>
+        <li>
+          <a href="https://datatracker.ietf.org/doc/html/rfc7519" target="_blank">RFC 7519  - JSON Web Token (JWT)</a>
+          <div class="ref-desc">The official JWT specification, including structure, claims, and signing algorithms.</div>
+        </li>
+        <li>
+          <a href="https://datatracker.ietf.org/doc/html/rfc8471" target="_blank">RFC 8471  - Token Binding Protocol</a>
+          <div class="ref-desc">The original Token Binding specification that influenced modern DBSC proposals.</div>
+        </li>
+        <li>
+          <a href="https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html" target="_blank">OWASP Session Management Cheat Sheet</a>
+          <div class="ref-desc">Comprehensive guide to secure session management practices from OWASP.</div>
+        </li>
+        <li>
+          <a href="https://github.com/nicowillis/dbsc" target="_blank">Chrome DBSC Proposal</a>
+          <div class="ref-desc">Device-Bound Session Credentials proposal for hardware-backed session security.</div>
+        </li>
+        <li>
+          <a href="https://jwt.io" target="_blank">jwt.io  - JWT Debugger</a>
+          <div class="ref-desc">Interactive tool to decode, verify, and generate JWTs. Essential for debugging JWT implementations.</div>
+        </li>
+        <li>
+          <a href="https://fidoalliance.org" target="_blank">FIDO Alliance</a>
+          <div class="ref-desc">Standards body for authentication, including WebAuthn and passkeys.</div>
+        </li>
+      </ul>
+    </section>
+
+    <div class="footer">
+      <p>CookieJar Lab · Educational purposes only · <a href="/dashboard.html">Back to Lab</a></p>
+    </div>
+  </div>
+
+  <script>
+    const port = window.location.port;
+    const isVulnerable = port !== '3002';
+
+    if (!isVulnerable) {
+      document.documentElement.style.setProperty('--accent', '#51cf66');
+      document.documentElement.style.setProperty('--accent-2', '#69db7c');
+      document.documentElement.style.setProperty('--header-gradient', 'linear-gradient(135deg, #1a1d27 0%, #1a2d1e 100%)');
+      document.getElementById('header-icon').innerHTML = '&#128274;';
+      document.getElementById('app-badge').textContent = 'Hardened App';
+      document.getElementById('app-badge').className = 'app-badge badge-hard';
+    }
+
+    async function initNav() {
+      if (!isVulnerable) {
+        document.querySelectorAll('[data-vuln-only]').forEach(el => el.style.display = 'none');
+      }
+      try {
+        const res = await fetch('/api/me');
+        if (res.ok) {
+          document.getElementById('nav-dashboard').classList.remove('disabled');
+          const vault = document.getElementById('nav-vault');
+          if (vault && isVulnerable) vault.classList.remove('disabled');
+          document.getElementById('nav-login').style.display = 'none';
+          document.getElementById('nav-logout').style.display = '';
+        }
+      } catch (e) {}
+    }
+
+    async function logout() {
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.href = '/index.html';
+    }
+
+    function setupScrollSpy() {
+      const header = document.querySelector('.header');
+      const secNav = document.querySelector('.section-nav');
+
+      function syncNavTop() {
+        secNav.style.top = header.offsetHeight + 'px';
+      }
+
+      syncNavTop();
+      window.addEventListener('resize', syncNavTop);
+
+      const sections = document.querySelectorAll('.section[id]');
+      const navLinks = document.querySelectorAll('.section-nav a');
+
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            navLinks.forEach(link => {
+              link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+            });
+          }
+        });
+      }, { rootMargin: '-30% 0px -60% 0px' });
+
+      sections.forEach(s => observer.observe(s));
+    }
+
+    initNav();
+    setupScrollSpy();
+  </script>
+</body>
+</html>
