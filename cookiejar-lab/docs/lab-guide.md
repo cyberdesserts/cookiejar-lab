@@ -1,6 +1,6 @@
 # CookieJar Lab - Lab Guide
 
-> A session replay attack lab for defenders | [Back to README](../README.md)
+> A session replay attack lab for defenders | [Back to README](../README.md) | [Interactive Demo](https://cyberdesserts.github.io/cookiejar-lab/demo/)
 
 ## Overview
 

@@ -1,6 +1,6 @@
 # Security Notes - mkcert and HTTPS in CookieJar Lab
 
-> Part of [CookieJar Lab](../README.md) - A session replay attack lab for defenders
+> Part of [CookieJar Lab](../README.md) - A session replay attack lab for defenders | [Interactive Demo](https://cyberdesserts.github.io/cookiejar-lab/demo/)
 
 ## What mkcert Does
 

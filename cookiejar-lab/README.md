@@ -227,6 +227,7 @@ This removes the mkcert root CA from your system trust store and deletes the gen
 
 ## Documentation
 
+- [Interactive Demo](https://cyberdesserts.github.io/cookiejar-lab/demo/) - No-setup browser walkthrough of the full attack
 - [Lab Guide](docs/lab-guide.md) - Detailed exercises, discussion questions, and further reading
 - [Security Notes](docs/security-notes.md) - mkcert safety guide and HTTPS cleanup checklist
 
