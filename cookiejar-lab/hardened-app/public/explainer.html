@@ -6,29 +6,31 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>">
   <title>Session Security Guide | CookieJar Lab</title>
   <style>
+    html { overflow-y: scroll; }
     :root {
       --bg: #0f1117;
       --surface: #1a1d27;
       --surface-2: #242836;
-      --accent: #ff6b6b;
-      --accent-2: #ffa36b;
+      --accent: #51cf66;
+      --accent-2: #69db7c;
       --green: #51cf66;
       --blue: #339af0;
       --text: #e1e4eb;
       --text-dim: #8b92a5;
       --border: #2d3348;
       --danger: #ff4757;
+      --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
       --purple: #b197fc;
-      --header-gradient: linear-gradient(135deg, #1a1d27 0%, #2d1a2e 100%);
+      --header-gradient: linear-gradient(135deg, #1a1d27 0%, #1a2d1e 100%);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6; }
 
     /* ── Header ── */
     .header {
       background: var(--header-gradient);
       border-bottom: 1px solid var(--border);
-      padding: 20px 32px;
+      padding: 22px 35px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -37,13 +39,14 @@
       z-index: 50;
       line-height: normal;
     }
-    .header h1 { font-size: 20px; }
+    .header h1 { font-size: 22px; }
     .header h1 span { color: var(--accent); }
-    .header-right { display: flex; align-items: center; gap: 16px; }
-    .nav-link { color: var(--text-dim); text-decoration: none; font-size: 13px; transition: color 0.2s; white-space: nowrap; }
+    .header-left { display: flex; flex-direction: column; gap: 4px; }
+    .header-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .nav-link { color: var(--text-dim); text-decoration: none; font-size: 14px; transition: color 0.2s; white-space: nowrap; }
     .nav-link:hover { color: var(--text); }
     .nav-link.active { color: var(--accent); }
-    .app-badge { padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+    .app-badge { padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
     .badge-vuln { background: var(--danger); color: #1a1d27; }
     .badge-hard { background: var(--green); color: #0f1117; }
     .btn-logout { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
@@ -51,7 +54,7 @@
       min-width: 80px;
       text-align: center;
       padding: 6px 14px;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
       border-radius: 6px;
       cursor: pointer;
@@ -59,7 +62,6 @@
       display: inline-block;
       transition: opacity 0.2s;
       white-space: nowrap;
-      font-family: inherit;
     }
     .nav-auth-btn:hover { opacity: 0.85; }
     .nav-auth-btn.login-btn {
@@ -93,7 +95,7 @@
     .section-nav a {
       color: var(--text-dim);
       text-decoration: none;
-      font-size: 11px;
+      font-size: 12px;
       padding: 10px 14px;
       white-space: nowrap;
       border-bottom: 2px solid transparent;
@@ -103,28 +105,28 @@
     .section-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
 
     /* ── Container ── */
-    .container { max-width: 940px; margin: 0 auto; padding: 0 20px; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
 
     /* ── Sections ── */
     .section { padding: 48px 0 24px; }
-    .section-title { font-size: 20px; margin-bottom: 8px; }
-    .section-subtitle { color: var(--text-dim); font-size: 13px; margin-bottom: 28px; line-height: 1.6; }
+    .section-title { font-size: 22px; margin-bottom: 8px; }
+    .section-subtitle { color: var(--text-dim); font-size: 14px; margin-bottom: 28px; line-height: 1.6; }
 
     /* ── Hero ── */
     .hero { padding: 48px 0 32px; text-align: center; }
-    .hero h2 { font-size: 26px; margin-bottom: 8px; }
+    .hero h2 { font-size: 29px; margin-bottom: 8px; }
     .hero h2 em { color: var(--accent); font-style: normal; }
-    .hero .sub { color: var(--text-dim); font-size: 13px; max-width: 600px; margin: 0 auto 20px; }
+    .hero .sub { color: var(--text-dim); font-size: 14px; max-width: 600px; margin: 0 auto 20px; }
     .status-pill {
       display: inline-block;
       padding: 6px 16px;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 13px;
       margin-bottom: 12px;
     }
     .status-pill.logged-in { background: rgba(81, 207, 102, 0.12); border: 1px solid rgba(81, 207, 102, 0.3); color: var(--green); }
     .status-pill.logged-out { background: rgba(139, 146, 165, 0.12); border: 1px solid rgba(139, 146, 165, 0.3); color: var(--text-dim); }
-    .hero-meta { font-size: 11px; color: var(--text-dim); }
+    .hero-meta { font-size: 12px; color: var(--text-dim); }
     .hero-meta a { color: var(--blue); text-decoration: none; }
     .hero-meta a:hover { text-decoration: underline; }
 
@@ -137,7 +139,7 @@
       margin-bottom: 16px;
     }
     .card h3 {
-      font-size: 13px;
+      font-size: 14px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: var(--text-dim);
@@ -152,7 +154,7 @@
       border-radius: 10px;
       padding: 14px 18px;
       text-align: center;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.25s;
@@ -161,9 +163,9 @@
       user-select: none;
     }
     .flow-node:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .flow-node.active { border-color: var(--accent); background: rgba(255, 107, 107, 0.08); }
-    .flow-node .icon { font-size: 22px; margin-bottom: 6px; }
-    .flow-arrow { color: var(--text-dim); font-size: 18px; padding: 0 6px; flex-shrink: 0; }
+    .flow-node.active { border-color: var(--accent); background: rgba(51, 154, 240, 0.08); }
+    .flow-node .icon { font-size: 24px; margin-bottom: 6px; }
+    .flow-arrow { color: var(--text-dim); font-size: 20px; padding: 0 6px; flex-shrink: 0; }
 
     /* ── Expandable panels ── */
     .expand-panel {
@@ -172,7 +174,7 @@
       transition: max-height 0.4s ease, padding 0.3s ease;
       background: var(--bg);
       border-radius: 8px;
-      font-size: 12px;
+      font-size: 13px;
       line-height: 1.7;
       color: var(--text-dim);
     }
@@ -183,13 +185,13 @@
       margin-bottom: 12px;
     }
     .expand-panel strong { color: var(--text); }
-    .expand-panel code { background: var(--surface-2); padding: 1px 5px; border-radius: 3px; color: var(--accent-2); font-size: 11px; }
+    .expand-panel code { background: var(--surface-2); padding: 1px 5px; border-radius: 3px; color: var(--accent-2); font-size: 12px; }
 
     /* ── Callout ── */
     .callout {
       border-radius: 8px;
       padding: 14px 16px;
-      font-size: 12px;
+      font-size: 13px;
       line-height: 1.6;
       margin: 16px 0;
     }
@@ -207,7 +209,7 @@
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 16px;
-      font-size: 12px;
+      font-size: 13px;
     }
     .cookie-field {
       display: flex;
@@ -230,12 +232,12 @@
     }
     .jwt-band:hover { transform: translateY(-1px); }
     .jwt-band.active { border-radius: 8px 8px 0 0; margin-bottom: 0; }
-    .jwt-band-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 4px; }
-    .jwt-band-value { font-size: 11px; word-break: break-all; opacity: 0.8; font-family: inherit; }
-    .jwt-header-band { background: rgba(255, 107, 107, 0.12); }
+    .jwt-band-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 4px; }
+    .jwt-band-value { font-size: 12px; word-break: break-all; opacity: 0.8; }
+    .jwt-header-band { background: rgba(51, 154, 240, 0.12); }
     .jwt-header-band .jwt-band-label { color: var(--accent); }
-    .jwt-header-band .jwt-band-value { color: #ff8a8a; }
-    .jwt-header-band:hover, .jwt-header-band.active { background: rgba(255, 107, 107, 0.18); border-color: rgba(255, 107, 107, 0.3); }
+    .jwt-header-band .jwt-band-value { color: #74c0fc; }
+    .jwt-header-band:hover, .jwt-header-band.active { background: rgba(51, 154, 240, 0.18); border-color: rgba(51, 154, 240, 0.3); }
     .jwt-payload-band { background: rgba(255, 163, 107, 0.12); }
     .jwt-payload-band .jwt-band-label { color: var(--accent-2); }
     .jwt-payload-band .jwt-band-value { color: #ffb980; }
@@ -260,7 +262,7 @@
     }
     .jwt-expand-inner {
       padding: 16px;
-      font-size: 12px;
+      font-size: 13px;
       line-height: 1.6;
       color: var(--text-dim);
       background: var(--bg);
@@ -269,7 +271,7 @@
       background: var(--surface-2);
       padding: 12px;
       border-radius: 6px;
-      font-size: 11px;
+      font-size: 12px;
       overflow-x: auto;
       margin: 8px 0;
       color: var(--text);
@@ -285,7 +287,7 @@
       padding: 20px;
     }
     .heatmap-card h4 {
-      font-size: 12px;
+      font-size: 13px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 14px;
@@ -299,7 +301,7 @@
       border-radius: 6px;
       padding: 10px 14px;
       margin-bottom: 6px;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
@@ -310,7 +312,7 @@
     .flag-bar:hover { transform: translateX(3px); }
     .flag-bar.insecure { background: rgba(255, 71, 87, 0.12); color: #ff8a94; border: 1px solid rgba(255, 71, 87, 0.2); }
     .flag-bar.secure { background: rgba(81, 207, 102, 0.12); color: #69db7c; border: 1px solid rgba(81, 207, 102, 0.2); }
-    .flag-bar .flag-val { font-weight: 400; font-size: 11px; opacity: 0.8; }
+    .flag-bar .flag-val { font-weight: 400; font-size: 12px; opacity: 0.8; }
 
     .flag-detail {
       max-height: 0;
@@ -322,7 +324,7 @@
     }
     .flag-detail-inner {
       padding: 12px 14px;
-      font-size: 11px;
+      font-size: 12px;
       line-height: 1.7;
       color: var(--text-dim);
       background: var(--bg);
@@ -347,10 +349,10 @@
     }
     .attack-stage:hover { transform: translateY(-3px); }
     .attack-stage.active { border-color: white; }
-    .attack-stage .stage-num { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; margin-bottom: 6px; }
-    .attack-stage .stage-icon { font-size: 28px; margin-bottom: 6px; }
-    .attack-stage .stage-label { font-size: 11px; font-weight: 600; }
-    .stage-arrow { display: flex; align-items: center; color: var(--text-dim); font-size: 16px; flex-shrink: 0; }
+    .attack-stage .stage-num { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; margin-bottom: 6px; }
+    .attack-stage .stage-icon { font-size: 31px; margin-bottom: 6px; }
+    .attack-stage .stage-label { font-size: 12px; font-weight: 600; }
+    .stage-arrow { display: flex; align-items: center; color: var(--text-dim); font-size: 18px; flex-shrink: 0; }
     .attack-stage-1 { background: rgba(51, 154, 240, 0.15); color: #74c0fc; }
     .attack-stage-2 { background: rgba(51, 154, 240, 0.1); color: #74c0fc; }
     .attack-stage-3 { background: rgba(255, 163, 107, 0.15); color: #ffa36b; }
@@ -373,8 +375,8 @@
     }
     .timeline-zone:hover { filter: brightness(1.15); }
     .timeline-zone.active { outline: 2px solid white; outline-offset: -2px; }
-    .timeline-zone h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-    .timeline-zone p { font-size: 11px; opacity: 0.8; }
+    .timeline-zone h4 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .timeline-zone p { font-size: 12px; opacity: 0.8; }
     .auth-zone { background: rgba(51, 154, 240, 0.12); color: #74c0fc; flex: 2; }
     .handoff-zone {
       background: rgba(177, 151, 252, 0.15); color: #d0bfff;
@@ -394,15 +396,15 @@
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.25s;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
       border: 1px solid transparent;
     }
     .defense-layer:hover { transform: translateX(4px); }
     .defense-layer.active-defense { background: rgba(81, 207, 102, 0.1); color: #69db7c; border-color: rgba(81, 207, 102, 0.2); }
     .defense-layer.missing-defense { background: rgba(255, 71, 87, 0.08); color: #ff8a94; border-color: rgba(255, 71, 87, 0.15); }
-    .defense-layer .layer-num { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.6; margin-right: 14px; min-width: 55px; }
-    .defense-layer .layer-status { margin-left: auto; font-size: 11px; font-weight: 400; opacity: 0.7; }
+    .defense-layer .layer-num { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.6; margin-right: 14px; min-width: 55px; }
+    .defense-layer .layer-status { margin-left: auto; font-size: 12px; font-weight: 400; opacity: 0.7; }
 
     .defense-toggle {
       display: flex;
@@ -412,8 +414,7 @@
     .defense-toggle button {
       flex: 1;
       padding: 8px;
-      font-family: inherit;
-      font-size: 11px;
+      font-size: 12px;
       cursor: pointer;
       border: 1px solid var(--border);
       background: var(--bg);
@@ -435,15 +436,15 @@
       transition: all 0.25s;
     }
     .future-card:hover { border-color: var(--blue); transform: translateY(-2px); }
-    .future-card h4 { font-size: 13px; margin-bottom: 4px; color: var(--blue); }
-    .future-card p { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+    .future-card h4 { font-size: 14px; margin-bottom: 4px; color: var(--blue); }
+    .future-card p { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
     .future-card .expand-detail {
       max-height: 0;
       overflow: hidden;
       transition: max-height 0.3s ease;
     }
     .future-card .expand-detail.open { max-height: 200px; }
-    .future-card .expand-detail-inner { padding-top: 10px; font-size: 11px; color: var(--text-dim); line-height: 1.6; border-top: 1px solid var(--border); margin-top: 10px; }
+    .future-card .expand-detail-inner { padding-top: 10px; font-size: 12px; color: var(--text-dim); line-height: 1.6; border-top: 1px solid var(--border); margin-top: 10px; }
     .future-card .expand-detail-inner a { color: var(--blue); text-decoration: none; }
     .future-card .expand-detail-inner a:hover { text-decoration: underline; }
 
@@ -455,8 +456,7 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       color: var(--text);
-      font-family: inherit;
-      font-size: 13px;
+      font-size: 14px;
       outline: none;
       transition: border-color 0.2s;
       margin-bottom: 16px;
@@ -470,10 +470,10 @@
       border-radius: 8px;
       padding: 12px 14px;
       margin-bottom: 8px;
-      font-size: 12px;
+      font-size: 13px;
     }
-    .glossary-term .term-name { font-weight: 700; color: var(--accent); margin-bottom: 2px; font-size: 12px; }
-    .glossary-term .term-def { color: var(--text-dim); line-height: 1.5; font-size: 11px; }
+    .glossary-term .term-name { font-weight: 700; color: var(--accent); margin-bottom: 2px; font-size: 13px; }
+    .glossary-term .term-def { color: var(--text-dim); line-height: 1.5; font-size: 12px; }
 
     /* ── Buttons ── */
     .btn {
@@ -481,8 +481,7 @@
       padding: 8px 16px;
       border: none;
       border-radius: 6px;
-      font-family: inherit;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
@@ -504,7 +503,7 @@
       padding: 14px 16px;
       margin-top: 16px;
     }
-    .jwt-io-cta .cta-text { font-size: 12px; color: var(--text-dim); line-height: 1.5; flex: 1; }
+    .jwt-io-cta .cta-text { font-size: 13px; color: var(--text-dim); line-height: 1.5; flex: 1; }
     .jwt-io-cta .cta-text strong { color: var(--text); }
 
     /* ── OAuth sub-diagram ── */
@@ -521,12 +520,17 @@
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 6px 10px;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 600;
       white-space: nowrap;
     }
     .oauth-step.danger-step { background: rgba(255, 71, 87, 0.15); border-color: rgba(255, 71, 87, 0.3); color: #ff8a94; }
-    .oauth-arrow { color: var(--text-dim); font-size: 14px; padding: 0 3px; }
+    .oauth-arrow { color: var(--text-dim); font-size: 15px; padding: 0 3px; }
+
+    .jwt-band-value, .glossary-search, .cookie-field .val, .expand-panel code, .callout code, code, pre { font-family: var(--font-mono); }
+
+    .nav-impact { color: #f59f00 !important; background: rgba(245,159,0,0.12); padding: 4px 12px; border-radius: 4px; border: 1px solid rgba(245,159,0,0.3); font-weight: 600; font-size: 14px; }
+    .nav-impact:hover { background: rgba(245,159,0,0.22); }
 
     /* ── Responsive ── */
     @media (max-width: 768px) {
@@ -542,8 +546,14 @@
       .stage-arrow { transform: rotate(90deg); justify-content: center; padding: 4px 0; }
       .timeline-bar { flex-direction: column; }
       .handoff-zone { width: auto; border-left: none; border-right: none; border-top: 2px dashed rgba(177, 151, 252, 0.4); border-bottom: 2px dashed rgba(177, 151, 252, 0.4); }
-      .hero h2 { font-size: 20px; }
-      .section-nav a { font-size: 10px; padding: 8px 10px; }
+      .hero h2 { font-size: 22px; }
+      .section-nav a { font-size: 11px; padding: 8px 10px; }
+      .header h1 { font-size: 17px; }
+      .header-right { gap: 8px; }
+      .nav-link { font-size: 12px; }
+      .app-badge { font-size: 10px; padding: 3px 8px; }
+      .nav-auth-btn { font-size: 11px; padding: 5px 10px; min-width: 60px; }
+      .nav-impact { font-size: 10px; padding: 3px 8px; }
     }
   </style>
 </head>
@@ -551,14 +561,16 @@
 
   <!-- ── Header ── -->
   <div class="header">
-    <h1><span id="header-icon">&#127850;</span> CookieJar Lab</h1>
+    <div class="header-left">
+      <h1><span id="header-icon">&#127850;</span> CookieJar Lab</h1>
+      <span class="app-badge" id="app-badge">Vulnerable App</span>
+    </div>
     <div class="header-right">
-      <a href="/dashboard.html" class="nav-link disabled" data-nav="dashboard" id="nav-dashboard">Dashboard</a>
-      <a href="/cookie-vault.html" class="nav-link disabled" data-nav="cookie-vault" data-vuln-only id="nav-vault">Cookie Vault</a>
-      <a href="/attack-console.html" class="nav-link" data-nav="attack-console" id="nav-attack">Attack Console</a>
+      <a href="/dashboard.html" class="nav-link" data-nav="lab">Lab</a>
       <a href="/explainer.html" class="nav-link active" data-nav="learn">Learn</a>
       <a href="/concepts.html" class="nav-link" data-nav="concepts">Concepts</a>
-      <span class="app-badge" id="app-badge">Vulnerable App</span>
+      <a href="#" class="nav-link nav-impact" onclick="toggleImpact(event)">Impact</a>
+      <a href="https://cyberdesserts.github.io/cookiejar-lab/" class="nav-link" target="_blank"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="vertical-align:-2px;margin-right:4px;"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
       <a href="/index.html" class="nav-auth-btn login-btn" id="nav-login">Login</a>
       <button class="nav-auth-btn logout-btn" id="nav-logout" style="display:none;" onclick="logout()">Logout</button>
     </div>
@@ -1090,7 +1102,7 @@
     </div>
 
     <div style="text-align:center; padding:40px 0; font-size:11px; color:var(--text-dim);">
-      CookieJar Lab &middot; Educational purposes only &middot; <a href="/index.html" style="color:var(--blue); text-decoration:none;">Back to Lab</a>
+      CookieJar Lab by <a href="https://cyberdesserts.com" target="_blank" style="color:var(--blue); text-decoration:none;">CyberDesserts</a> &middot; Educational purposes only &middot; <a href="/index.html" style="color:var(--blue); text-decoration:none;">Back to Lab</a>
     </div>
   </div>
 
@@ -1192,15 +1204,7 @@
     }
 
     function updateNavLinks() {
-      // Hide Cookie Vault on hardened app
-      if (!isVulnerable) {
-        document.querySelectorAll('[data-vuln-only]').forEach(el => el.style.display = 'none');
-      }
       if (isLoggedIn) {
-        // Enable nav links, show logout
-        document.getElementById('nav-dashboard').classList.remove('disabled');
-        const vault = document.getElementById('nav-vault');
-        if (vault && isVulnerable) vault.classList.remove('disabled');
         document.getElementById('nav-login').style.display = 'none';
         document.getElementById('nav-logout').style.display = '';
       }
@@ -1478,6 +1482,44 @@
 
     /* ── Init ── */
     init();
+  </script>
+
+  <!-- Impact Modal -->
+  <div id="impact-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:200; overflow-y:auto;">
+    <div style="max-width:680px; margin:40px auto; background:var(--surface); border-radius:12px; padding:31px; border:1px solid var(--border);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h3 style="font-size:20px; color:#f59f00;">Real-World Impact</h3>
+        <button onclick="document.getElementById('impact-modal').style.display='none'" style="background:var(--surface-2); color:var(--text); border:1px solid var(--border); padding:6px 14px; border-radius:6px; cursor:pointer; font-size:14px;">Close</button>
+      </div>
+      <p style="font-size:14px; color:var(--text-dim); margin-bottom:20px; line-height:1.6;">Session cookie theft isn't theoretical - it's the #1 technique behind major breaches today.</p>
+      <div style="border-left:4px solid #f59f00; background:var(--surface-2); border-radius:0 8px 8px 0; padding:16px 18px; margin-bottom:14px;">
+        <h4 style="font-size:15px; margin-bottom:4px; color:var(--text);">Lumma Stealer Campaign (2025)</h4>
+        <p style="font-size:14px; color:var(--text-dim); line-height:1.6;">Lumma infostealer distributed via fake CAPTCHA pages and cracked software. Steals browser cookies, passwords, and crypto wallets. Microsoft disrupted its infrastructure in May 2025 after it infected 394,000+ Windows machines.</p>
+      </div>
+      <div style="border-left:4px solid #f59f00; background:var(--surface-2); border-radius:0 8px 8px 0; padding:16px 18px; margin-bottom:14px;">
+        <h4 style="font-size:15px; margin-bottom:4px; color:var(--text);">Snowflake Customer Breaches (2024)</h4>
+        <p style="font-size:14px; color:var(--text-dim); line-height:1.6;">Attackers used stolen session tokens (harvested by infostealers) to access Snowflake accounts of 165+ organizations including Ticketmaster (560M records) and AT&T (110M records). No MFA bypass needed - the cookies were enough.</p>
+      </div>
+      <div style="border-left:4px solid #f59f00; background:var(--surface-2); border-radius:0 8px 8px 0; padding:16px 18px; margin-bottom:14px;">
+        <h4 style="font-size:15px; margin-bottom:4px; color:var(--text);">Dutch Police Token Theft (2024)</h4>
+        <p style="font-size:14px; color:var(--text-dim); line-height:1.6;">A state actor stole session cookies from a Dutch police officer's machine via infostealer malware, accessing contact details of 63,000 officers. The attacker bypassed all authentication including the police network's MFA.</p>
+      </div>
+      <div style="border-left:4px solid #f59f00; background:var(--surface-2); border-radius:0 8px 8px 0; padding:16px 18px; margin-bottom:14px;">
+        <h4 style="font-size:15px; margin-bottom:4px; color:var(--text);">Cookie-Bite Attack on Azure Entra (2025)</h4>
+        <p style="font-size:14px; color:var(--text-dim); line-height:1.6;">Researchers demonstrated a browser extension that exfiltrates Azure Entra ID session cookies in real-time, bypassing MFA and Conditional Access Policies to access Microsoft 365 services including email, Teams, and SharePoint.</p>
+      </div>
+      <p style="font-size:14px; color:var(--text-dim); text-align:center; margin-top:8px;">This lab demonstrates the exact techniques used in these attacks.<br><a href="https://cyberdesserts.com" target="_blank" style="color:#f59f00; text-decoration:none;">cyberdesserts.com</a></p>
+    </div>
+  </div>
+  <script>
+    function toggleImpact(e) {
+      e.preventDefault();
+      var m = document.getElementById('impact-modal');
+      m.style.display = m.style.display === 'none' ? 'block' : 'none';
+    }
+    document.getElementById('impact-modal').addEventListener('click', function(e) {
+      if (e.target === this) this.style.display = 'none';
+    });
   </script>
 </body>
 </html>

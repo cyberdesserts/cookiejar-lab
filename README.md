@@ -26,6 +26,8 @@ docker compose up --build
 - **Vulnerable App**: [http://localhost:3001](http://localhost:3001)
 - **Hardened App**: [http://localhost:3002](http://localhost:3002)
 
+> **Start here:** [Lab Guide](cookiejar-lab/docs/lab-guide.md) - Hands-on exercises with step-by-step instructions
+
 See [`cookiejar-lab/README.md`](cookiejar-lab/README.md) for the full walkthrough, HTTPS setup, and detailed documentation.
 
 ## License

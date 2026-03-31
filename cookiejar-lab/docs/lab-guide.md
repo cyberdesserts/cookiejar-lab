@@ -1,6 +1,6 @@
 # CookieJar Lab - Lab Guide
 
-> A session replay attack lab for defenders | [Back to README](../README.md) | [Interactive Demo](https://cyberdesserts.github.io/cookiejar-lab/demo/)
+> [Home](../../README.md) | [Lab Docs](../README.md) | [Demo](https://cyberdesserts.github.io/cookiejar-lab/demo/)
 
 ## Overview
 
@@ -27,7 +27,7 @@ This lab demonstrates a fundamental gap in web security: **authentication protec
    - `HttpOnly` is unchecked (false)
    - `SameSite` is None
    - `Expires` is 7 days from now
-7. Navigate to the Cookie Vault page
+7. Click "Cookie Vault" in the step bar
 8. Compare what you see in DevTools with what the Cookie Vault shows
 
 **Key takeaway**: The session cookie is a JWT containing your full identity. JavaScript can read it because httpOnly is false.

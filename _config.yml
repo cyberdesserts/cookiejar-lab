@@ -1,6 +1,7 @@
 title: CookieJar Lab
 description: A hands-on session security lab showing how stolen cookies bypass passwords, 2FA, and OAuth
 url: https://cyberdesserts.com
+baseurl: /cookiejar-lab
 defaults:
   - scope:
       path: ""

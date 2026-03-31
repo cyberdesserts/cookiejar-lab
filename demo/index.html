@@ -10,7 +10,9 @@
       --bg: #0f1117;
       --surface: #1a1d27;
       --surface-2: #242836;
-      --accent: #ff6b6b;
+      --primary: #22d3ee;
+      --primary-dim: #0e7490;
+      --warning: #ff6b6b;
       --accent-2: #ffa36b;
       --green: #51cf66;
       --blue: #339af0;
@@ -19,15 +21,16 @@
       --border: #2d3348;
       --danger: #ff4757;
       --amber: #f59f00;
+      --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body {
-      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      padding-bottom: 48px;
+      padding-bottom: 52px;
       overflow-x: hidden;
     }
 
@@ -36,62 +39,69 @@
       position: sticky; top: 0; z-index: 100;
       background: linear-gradient(135deg, #1a1d27 0%, #2d1a2e 100%);
       border-bottom: 1px solid var(--border);
-      padding: 16px 24px;
+      padding: 18px 26px;
       display: flex; align-items: center; justify-content: space-between;
     }
-    .header h1 { font-size: 18px; white-space: nowrap; }
-    .header h1 span { color: var(--accent); }
+    .header h1 { font-size: 20px; white-space: nowrap; }
+    .header h1 span { color: var(--primary); }
     .header-right { display: flex; align-items: center; gap: 12px; }
     .nav-full-code {
-      padding: 5px 14px; border-radius: 4px; font-size: 10px;
+      padding: 5px 14px; border-radius: 4px; font-size: 11px;
       font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;
-      background: rgba(51,154,240,0.15); color: var(--blue);
-      border: 1px solid rgba(51,154,240,0.3);
+      background: rgba(34,211,238,0.15); color: var(--primary);
+      border: 1px solid rgba(34,211,238,0.3);
       text-decoration: none; white-space: nowrap;
       transition: background 0.2s;
     }
-    .nav-full-code:hover { background: rgba(51,154,240,0.25); }
+    .nav-full-code:hover { background: rgba(34,211,238,0.25); }
+    .nav-impact {
+      background: rgba(245,159,0,0.15);
+      color: var(--amber);
+      border-color: rgba(245,159,0,0.3);
+    }
+    .nav-impact:hover { background: rgba(245,159,0,0.25); }
     .badge-demo {
-      padding: 4px 12px; border-radius: 4px; font-size: 10px;
+      padding: 4px 12px; border-radius: 4px; font-size: 11px;
       font-weight: bold; text-transform: uppercase; letter-spacing: 1px;
-      background: var(--amber); color: #1a1d27;
+      background: rgba(34,211,238,0.15); color: var(--primary);
+      border: 1px solid rgba(34,211,238,0.3);
     }
 
     /* ═══════ JOURNEY BAR ═══════ */
     .journey-bar {
-      position: sticky; top: 52px; z-index: 99;
+      position: sticky; top: 58px; z-index: 99;
       display: flex; align-items: center; justify-content: center;
-      padding: 14px 24px;
+      padding: 15px 26px;
       background: var(--surface); border-bottom: 1px solid var(--border);
     }
     .j-step {
       display: flex; align-items: center; gap: 6px;
-      font-size: 11px; color: var(--text-dim); opacity: 0.35;
+      font-size: 12px; color: var(--text-dim); opacity: 0.35;
       white-space: nowrap; cursor: pointer; text-decoration: none;
       transition: all 0.4s;
     }
-    .j-step.active { opacity: 1; color: var(--accent); font-weight: 600; }
+    .j-step.active { opacity: 1; color: var(--primary); font-weight: 600; }
     .j-step.done { opacity: 0.65; }
     .j-dot {
-      width: 22px; height: 22px; border-radius: 50%;
+      width: 24px; height: 24px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 10px; font-weight: bold;
+      font-size: 11px; font-weight: bold;
       border: 2px solid var(--border); color: var(--text-dim);
       flex-shrink: 0; transition: all 0.4s;
     }
     .j-step.done .j-dot { border-color: var(--green); color: var(--green); }
-    .j-step.active .j-dot { background: var(--accent); border-color: var(--accent); color: #1a1d27; }
-    .j-conn { width: 32px; height: 2px; margin: 0 12px; background: var(--border); flex-shrink: 0; transition: background 0.4s; }
+    .j-step.active .j-dot { background: var(--primary); border-color: var(--primary); color: #1a1d27; }
+    .j-conn { width: 35px; height: 2px; margin: 0 12px; background: var(--border); flex-shrink: 0; transition: background 0.4s; }
     .j-conn.done { background: var(--green); }
 
     /* ═══════ GUIDE ARROW ═══════ */
     .guide {
       display: inline-flex; align-items: center; gap: 8px;
-      padding: 10px 20px 10px 16px;
-      background: var(--accent);
+      padding: 11px 22px 11px 18px;
+      background: var(--primary);
       color: #1a1d27;
       border-radius: 24px;
-      font-size: 13px; font-weight: 700;
+      font-size: 14px; font-weight: 700;
       cursor: pointer;
       animation: guidePulse 2s ease-in-out infinite;
       border: none; font-family: inherit;
@@ -100,14 +110,14 @@
       white-space: nowrap;
     }
     .guide:hover { transform: scale(1.05); }
-    .guide .arrow { font-size: 18px; animation: bounceRight 1s ease-in-out infinite; display: inline-block; }
+    .guide .arrow { font-size: 20px; animation: bounceRight 1s ease-in-out infinite; display: inline-block; }
     @keyframes bounceRight {
       0%, 100% { transform: translateX(0); }
       50% { transform: translateX(6px); }
     }
     @keyframes guidePulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,107,0.5); }
-      50% { box-shadow: 0 0 0 8px rgba(255,107,107,0); }
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34,211,238,0.5); }
+      50% { box-shadow: 0 0 0 8px rgba(34,211,238,0); }
     }
     .guide-down .arrow { animation: bounceDown 1s ease-in-out infinite; }
     @keyframes bounceDown {
@@ -129,41 +139,41 @@
     .scene {
       min-height: 70vh;
       display: flex; align-items: center; justify-content: center;
-      padding: 60px 20px;
+      padding: 66px 24px;
       position: relative;
     }
-    .scene-inner { max-width: 720px; width: 100%; }
+    .scene-inner { max-width: 780px; width: 100%; }
 
     /* ═══════ HERO ═══════ */
     .hero { text-align: center; min-height: 80vh; }
-    .hero-cookie { font-size: 64px; margin-bottom: 20px; }
-    .hero h2 { font-size: 32px; line-height: 1.3; margin-bottom: 12px; }
-    .hero h2 em { color: var(--accent); font-style: normal; }
-    .hero .sub { color: var(--text-dim); font-size: 14px; line-height: 1.6; margin-bottom: 40px; }
+    .hero-cookie { font-size: 70px; margin-bottom: 20px; }
+    .hero h2 { font-size: 35px; line-height: 1.3; margin-bottom: 12px; }
+    .hero h2 em { color: var(--primary); font-style: normal; }
+    .hero .sub { color: var(--text-dim); font-size: 15px; line-height: 1.6; margin-bottom: 40px; }
     .hero .lab-note {
-      margin-top: 24px; font-size: 12px; color: var(--text-dim); line-height: 1.6;
+      margin-top: 24px; font-size: 13px; color: var(--text-dim); line-height: 1.6;
       background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
       padding: 12px 20px; display: inline-block;
     }
-    .hero .lab-note a { color: var(--accent); text-decoration: none; }
+    .hero .lab-note a { color: var(--primary); text-decoration: none; }
 
     /* ═══════ STEP 1: LOGIN ═══════ */
     .login-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-      padding: 28px; max-width: 380px; margin: 0 auto;
+      padding: 31px; max-width: 420px; margin: 0 auto;
     }
-    .login-card h3 { font-size: 15px; margin-bottom: 4px; }
-    .login-card .dim { color: var(--text-dim); font-size: 11px; margin-bottom: 20px; }
+    .login-card h3 { font-size: 17px; margin-bottom: 4px; }
+    .login-card .dim { color: var(--text-dim); font-size: 12px; margin-bottom: 20px; }
     .fg { margin-bottom: 14px; }
-    .fg label { display: block; font-size: 11px; color: var(--text-dim); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .fg label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
     .fg input {
       width: 100%; padding: 9px 12px;
       background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
-      color: var(--text); font-family: inherit; font-size: 13px; outline: none;
+      color: var(--text); font-family: var(--font-mono); font-size: 14px; outline: none;
     }
     .btn-login {
-      width: 100%; padding: 10px; background: var(--accent); color: #1a1d27; border: none;
-      border-radius: 6px; font-family: inherit; font-size: 13px; font-weight: 600;
+      width: 100%; padding: 10px; background: var(--primary); color: #1a1d27; border: none;
+      border-radius: 6px; font-family: inherit; font-size: 14px; font-weight: 600;
       cursor: pointer; transition: opacity 0.2s;
     }
     .btn-login:hover { opacity: 0.85; }
@@ -171,44 +181,45 @@
       text-align: center; padding: 20px 0;
       animation: fadeUp 0.4s ease;
     }
-    .login-ok .check { font-size: 36px; margin-bottom: 8px; }
-    .login-ok p { color: var(--green); font-size: 14px; font-weight: 600; }
-    .login-ok .dim { color: var(--text-dim); font-size: 12px; margin-top: 4px; }
+    .login-ok .check { font-size: 40px; margin-bottom: 8px; }
+    .login-ok p { color: var(--green); font-size: 15px; font-weight: 600; }
+    .login-ok .dim { color: var(--text-dim); font-size: 13px; margin-top: 4px; }
 
     /* ═══════ STEP 2: DASHBOARD ═══════ */
     .dash-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
       padding: 24px; margin-bottom: 16px;
     }
-    .dash-user { font-size: 18px; margin-bottom: 6px; }
-    .dash-user em { color: var(--accent); font-style: normal; }
+    .dash-user { font-size: 20px; margin-bottom: 6px; }
+    .dash-user em { color: var(--primary); font-style: normal; }
     .badge-totp {
       display: inline-block; padding: 3px 8px; border-radius: 4px;
-      font-size: 10px; font-weight: bold; text-transform: uppercase;
+      font-size: 11px; font-weight: bold; text-transform: uppercase;
       background: rgba(81,207,102,0.15); color: var(--green); border: 1px solid rgba(81,207,102,0.3);
+      font-family: var(--font-mono);
     }
     .flag-row {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+      padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px;
       flex-wrap: wrap;
     }
     .flag-row:last-child { border-bottom: none; }
     .flag-row .k { color: var(--text-dim); }
-    .flag-row .v { color: var(--accent); font-weight: 600; }
+    .flag-row .v { color: var(--warning); font-weight: 600; font-family: var(--font-mono); }
     .flag-desc {
-      width: 100%; font-size: 12px; color: var(--text-dim); font-weight: 400;
+      width: 100%; font-size: 13px; color: var(--text-dim); font-weight: 400;
       margin-top: 6px; line-height: 1.5;
     }
     .finding {
-      background: rgba(255,71,87,0.08); border: 1px solid rgba(255,71,87,0.25);
-      border-radius: 8px; padding: 14px 16px; margin-top: 16px;
-      font-size: 13px; color: #ff8a94; line-height: 1.6;
+      background: rgba(255,71,87,0.08); border: none; border-left: 3px solid var(--danger);
+      border-radius: 4px; padding: 14px 16px; margin-top: 16px;
+      font-size: 14px; color: #ff8a94; line-height: 1.6;
     }
 
     /* ═══════ STEP 3: VAULT ═══════ */
     .vault-token {
       background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
-      padding: 16px; font-size: 11px; word-break: break-all; line-height: 1.6;
+      padding: 16px; font-size: 12px; word-break: break-all; line-height: 1.6; font-family: var(--font-mono);
       color: var(--accent-2); max-height: 80px; overflow-y: auto;
       margin-bottom: 16px;
     }
@@ -217,19 +228,20 @@
       padding: 24px; margin-bottom: 16px;
     }
     .vault-card h4 {
-      font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+      font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
       color: var(--text-dim); margin-bottom: 12px;
     }
     .steal-row {
       display: flex; justify-content: space-between; padding: 6px 10px;
-      background: var(--bg); border-radius: 4px; margin-bottom: 3px; font-size: 12px;
+      background: var(--bg); border-radius: 4px; margin-bottom: 3px; font-size: 13px;
     }
     .steal-row .k { color: var(--text-dim); }
-    .steal-row .v { color: var(--accent); font-weight: 600; }
+    .steal-row .v { color: var(--warning); font-weight: 600; font-family: var(--font-mono); }
     .vault-insight {
-      font-size: 12px; color: var(--text-dim); line-height: 1.6;
+      font-size: 13px; color: var(--text-dim); line-height: 1.6;
       margin-top: 12px; padding: 10px 14px;
-      background: rgba(255,71,87,0.06); border-radius: 6px;
+      background: rgba(34,211,238,0.04); border-left: 3px solid var(--primary-dim);
+      border-radius: 4px;
     }
     .vault-insight strong { color: var(--danger); }
 
@@ -238,17 +250,17 @@
       background: var(--surface); border: 1px solid rgba(255,71,87,0.3);
       border-radius: 12px; padding: 24px;
     }
-    .atk-panel h3 { font-size: 14px; margin-bottom: 12px; color: var(--accent); }
+    .atk-panel h3 { font-size: 15px; margin-bottom: 12px; color: var(--primary); }
     .atk-token {
       width: 100%; padding: 12px; background: var(--bg);
       border: 1px solid var(--border); border-radius: 8px;
-      color: var(--accent-2); font-family: inherit; font-size: 11px;
+      color: var(--accent-2); font-family: var(--font-mono); font-size: 12px;
       min-height: 60px; resize: none; outline: none;
     }
     .btn-replay {
       display: block; width: 100%; padding: 12px;
       background: var(--danger); color: #1a1d27; border: none;
-      border-radius: 6px; font-family: inherit; font-size: 14px;
+      border-radius: 6px; font-family: inherit; font-size: 15px;
       font-weight: 700; cursor: pointer; margin-top: 14px;
       transition: opacity 0.2s;
     }
@@ -261,30 +273,38 @@
       border-radius: 12px; padding: 24px; text-align: center;
       margin-bottom: 20px;
     }
-    .result-banner .ico { font-size: 40px; margin-bottom: 6px; }
-    .result-banner h3 { color: var(--green); font-size: 22px; }
-    .result-banner p { color: var(--text-dim); font-size: 13px; margin-top: 4px; }
+    .result-banner .ico { font-size: 44px; margin-bottom: 6px; }
+    .result-banner h3 { color: var(--green); font-size: 24px; }
+    .result-banner p { color: var(--text-dim); font-size: 14px; margin-top: 4px; }
     .result-profile {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 12px; padding: 20px; margin-bottom: 16px;
     }
     .rp-row {
       display: flex; justify-content: space-between; padding: 8px 0;
-      border-bottom: 1px solid var(--border); font-size: 13px;
+      border-bottom: 1px solid var(--border); font-size: 14px;
     }
     .rp-row:last-child { border-bottom: none; }
     .rp-row .k { color: var(--text-dim); }
-    .rp-row .v { font-weight: 600; }
+    .rp-row .v { font-weight: 600; font-family: var(--font-mono); }
     .rp-row .v.g { color: var(--green); }
-    .rp-row .v.w { color: var(--accent); }
+    .rp-row .v.w { color: var(--warning); }
     .explainer-box {
-      background: rgba(255,163,107,0.08); border: 1px solid rgba(255,163,107,0.25);
-      border-radius: 12px; padding: 20px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: 8px; padding: 24px 20px 20px; position: relative; margin-top: 20px;
     }
-    .explainer-box h4 { font-size: 15px; color: var(--accent-2); margin-bottom: 10px; }
-    .explainer-box p { font-size: 12px; color: var(--text-dim); line-height: 1.7; margin-bottom: 10px; }
-    .explainer-box .vuln-list { font-size: 12px; color: var(--text-dim); line-height: 1.8; }
-    .explainer-box .vuln-list span { color: var(--accent); }
+    .explainer-box::before {
+      content: "ANALYSIS";
+      position: absolute; top: -10px; left: 16px;
+      background: var(--primary); color: #1a1d27;
+      font-size: 10px; font-weight: 800; letter-spacing: 1px;
+      padding: 2px 8px; border-radius: 3px;
+    }
+    .explainer-box h4 { font-size: 17px; color: var(--primary); margin-bottom: 10px; }
+    .explainer-box p { font-size: 13px; color: var(--text-dim); line-height: 1.7; margin-bottom: 10px; }
+    .explainer-box .vuln-list { font-size: 13px; color: var(--text-dim); line-height: 1.8; }
+    .explainer-box .vuln-list span { color: var(--warning); }
 
     /* ═══════ HARDENED TEASER ═══════ */
     .vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
@@ -294,56 +314,65 @@
     .vs-card.bad { border: 1px solid rgba(255,71,87,0.3); }
     .vs-card.good { border: 1px solid rgba(81,207,102,0.3); }
     .vs-card h4 {
-      font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
+      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
     }
     .vs-card.bad h4 { color: var(--danger); }
     .vs-card.good h4 { color: var(--green); }
-    .vs-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12px; }
+    .vs-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; }
     .vs-row .k { color: var(--text-dim); }
-    .vs-row .bad { color: var(--accent); }
-    .vs-row .good { color: var(--green); }
+    .vs-row .bad { color: var(--warning); font-family: var(--font-mono); }
+    .vs-row .good { color: var(--green); font-family: var(--font-mono); }
 
     /* ═══════ CTA ═══════ */
     .cta-section { text-align: center; padding: 60px 20px 40px; }
-    .cta-section h2 { font-size: 22px; margin-bottom: 8px; scroll-margin-top: 120px; }
-    .cta-section .sub { color: var(--text-dim); font-size: 13px; margin-bottom: 28px; }
-    .cta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; max-width: 900px; margin: 0 auto; text-align: left; }
+    .cta-section h2 { font-size: 24px; margin-bottom: 8px; scroll-margin-top: 120px; }
+    .cta-section .sub { color: var(--text-dim); font-size: 14px; margin-bottom: 28px; }
+    .cta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; max-width: 980px; margin: 0 auto; text-align: left; }
     .cta-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
     }
-    .cta-card h3 { font-size: 14px; margin-bottom: 10px; }
-    .cta-card p { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin-bottom: 10px; }
-    .cta-card a { color: var(--accent); text-decoration: none; font-size: 12px; }
+    .cta-card h3 { font-size: 15px; margin-bottom: 10px; }
+    .cta-card p { font-size: 13px; color: var(--text-dim); line-height: 1.5; margin-bottom: 10px; }
+    .cta-card a { color: var(--primary); text-decoration: none; font-size: 13px; }
     .cta-card a:hover { text-decoration: underline; }
     .code-b {
       background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
-      padding: 8px 12px; font-size: 11px; color: var(--accent-2); margin-bottom: 6px;
+      padding: 8px 12px; font-size: 12px; color: var(--accent-2); margin-bottom: 6px; font-family: var(--font-mono);
       overflow-x: auto;
     }
     .footer {
-      text-align: center; padding: 24px; font-size: 11px; color: var(--text-dim);
+      text-align: center; padding: 24px; font-size: 12px; color: var(--text-dim);
       border-top: 1px solid var(--border); margin-top: 20px;
     }
     .footer a { color: var(--blue); text-decoration: none; }
 
     /* ═══════ URGENCY BOX ═══════ */
     .urgency-box {
-      background: rgba(51,154,240,0.08); border: 1px solid rgba(51,154,240,0.25);
-      border-radius: 12px; padding: 20px; margin-top: 20px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-left: 4px solid var(--amber);
+      border-radius: 8px; padding: 24px 20px 20px; margin-top: 20px; position: relative;
+      scroll-margin-top: 120px;
     }
-    .urgency-box h4 { font-size: 15px; color: var(--blue); margin-bottom: 10px; }
-    .urgency-box .stat-hook { font-size: 13px; color: var(--text); line-height: 1.7; margin-bottom: 14px; }
-    .urgency-box .reality-check { font-size: 12px; color: var(--text-dim); line-height: 1.8; margin-bottom: 14px; padding-left: 4px; }
+    .urgency-box::before {
+      content: "REAL-WORLD IMPACT";
+      position: absolute; top: -10px; left: 16px;
+      background: var(--amber); color: #1a1d27;
+      font-size: 10px; font-weight: 800; letter-spacing: 1px;
+      padding: 2px 8px; border-radius: 3px;
+    }
+    .urgency-box h4 { font-size: 17px; color: var(--amber); margin-bottom: 10px; }
+    .urgency-box .stat-hook { font-size: 14px; color: var(--text); line-height: 1.7; margin-bottom: 14px; }
+    .urgency-box .reality-check { font-size: 13px; color: var(--text-dim); line-height: 1.8; margin-bottom: 14px; padding-left: 4px; }
     .urgency-box .reality-check li { margin-bottom: 6px; list-style: none; }
-    .urgency-box .reality-check li::before { content: "→ "; color: var(--blue); font-weight: bold; }
-    .urgency-box .closer { font-size: 13px; color: var(--text); font-weight: 600; line-height: 1.6; }
+    .urgency-box .reality-check li::before { content: "→ "; color: var(--amber); font-weight: bold; }
+    .urgency-box .closer { font-size: 14px; color: var(--text); font-weight: 600; line-height: 1.6; }
 
     /* ═══════ TAKEAWAY LIST ═══════ */
     .takeaway-section { margin-top: 24px; }
-    .takeaway-section h4 { font-size: 14px; color: var(--text); margin-bottom: 12px; }
+    .takeaway-section h4 { font-size: 15px; color: var(--text); margin-bottom: 12px; }
     .takeaway-list { list-style: none; padding: 0; }
     .takeaway-list li {
-      font-size: 12px; color: var(--text-dim); line-height: 1.7;
+      font-size: 13px; color: var(--text-dim); line-height: 1.7;
       padding: 8px 0 8px 20px; border-bottom: 1px solid var(--border);
       position: relative;
     }
@@ -352,7 +381,7 @@
     }
     .takeaway-list li:last-child { border-bottom: none; }
     .takeaway-oneliner {
-      font-size: 12px; color: var(--text-dim); margin-top: 14px;
+      font-size: 13px; color: var(--text-dim); margin-top: 14px;
       font-style: italic; line-height: 1.6;
     }
 
@@ -361,7 +390,7 @@
     .cta-card.blue-accent h3 { color: var(--blue); }
     .cta-card.blue-accent a { color: var(--blue); }
     .cta-card.red-accent { border-color: rgba(255,107,107,0.4); }
-    .cta-card.red-accent h3 { color: var(--accent); }
+    .cta-card.red-accent h3 { color: var(--warning); }
     .cta-card.green-accent { border-color: rgba(81,207,102,0.4); }
     .cta-card.green-accent h3 { color: var(--green); }
     .cta-card.green-accent a { color: var(--green); }
@@ -371,9 +400,9 @@
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
       background: var(--surface); border-top: 1px solid var(--border);
       padding: 8px 24px; display: flex; align-items: center; justify-content: center;
-      gap: 6px; font-size: 11px; color: var(--text-dim);
+      gap: 6px; font-size: 12px; color: var(--text-dim);
     }
-    .bottom-bar a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    .bottom-bar a { color: var(--primary); text-decoration: none; font-weight: 600; }
 
     /* ═══════ ANIMATIONS ═══════ */
     @keyframes fadeUp {
@@ -402,11 +431,11 @@
       padding: 16px 14px; text-align: center;
     }
     .stat-item .num {
-      font-size: 28px; font-weight: 800; color: var(--accent);
+      font-size: 31px; font-weight: 800; color: var(--primary); font-family: var(--font-mono);
       line-height: 1.2; margin-bottom: 4px;
     }
     .stat-item .lbl {
-      font-size: 11px; color: var(--text-dim); line-height: 1.4;
+      font-size: 12px; color: var(--text-dim); line-height: 1.4;
     }
 
     /* ═══════ RESPONSIVE ═══════ */
@@ -421,11 +450,21 @@
       .j-step span { display: none; }
       .j-conn { width: 20px; }
       .scene { padding: 40px 16px; min-height: 60vh; }
-      .hero h2 { font-size: 24px; }
+      .hero h2 { font-size: 26px; }
       .stat-strip { flex-direction: column; align-items: center; }
       .stat-item { max-width: 100%; width: 100%; }
       .flag-row, .steal-row, .rp-row, .vs-row { flex-direction: column; gap: 2px; }
       .guide { font-size: 12px; padding: 8px 16px 8px 12px; }
+      .journey-bar { top: 42px; }
+      .login-card { padding: 20px; max-width: 100%; }
+      .dash-card, .vault-card, .atk-panel { padding: 16px; }
+      .explainer-box, .urgency-box { padding: 18px 14px 14px; }
+      .result-banner { padding: 16px; }
+      .result-profile { padding: 14px; }
+      .hero { min-height: auto; }
+      .bottom-bar { font-size: 10px; padding: 6px 16px; }
+      .badge-demo { display: none; }
+      .nav-impact { font-size: 9px; padding: 4px 10px; }
     }
   </style>
 </head>
@@ -436,6 +475,7 @@
     <h1><span>&#127850;</span> CookieJar Lab</h1>
     <div class="header-right">
       <a href="#full-attack" class="nav-full-code">Full Code</a>
+      <a href="#real-world-impact" class="nav-full-code nav-impact hidden" id="nav-impact">Impact</a>
       <span class="badge-demo">Interactive Demo</span>
     </div>
   </div>
@@ -547,7 +587,7 @@
       </div>
 
       <div class="dash-card">
-        <h4 style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-dim); margin-bottom:12px;">Cookie Security Flags</h4>
+        <h4 style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-dim); margin-bottom:12px;">Cookie Security Flags</h4>
         <div class="flag-row">
           <span class="k">httpOnly</span>
           <span class="v">false</span>
@@ -601,7 +641,7 @@
 
       <div class="vault-card" style="border-color: rgba(255,163,107,0.3);">
         <h4 style="color:var(--accent-2);">&#127875; How infostealers grab this</h4>
-        <p style="font-size:12px; color:var(--text-dim); line-height:1.7;">
+        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;">
           Malware like <strong style="color:var(--text);">RedLine, Raccoon, and Lumma</strong> runs silently
           after a user opens a phishing attachment or trojanized download. It reads the browser's cookie
           database directly from disk, an SQLite file sitting unencrypted in the user's profile folder.
@@ -653,8 +693,8 @@
        ═══════════════════════ -->
   <section class="scene hidden" id="hardened" style="min-height:auto; padding: 40px 20px;">
     <div class="scene-inner">
-      <h3 style="font-size:16px; margin-bottom:6px;">The hardened app blocks this same attack</h3>
-      <p style="font-size:12px; color:var(--text-dim); margin-bottom:16px;">Same app, same login flow, but the session is protected.</p>
+      <h3 style="font-size:18px; margin-bottom:6px;">The hardened app blocks this same attack</h3>
+      <p style="font-size:13px; color:var(--text-dim); margin-bottom:16px;">Same app, same login flow, but the session is protected.</p>
 
       <div class="vs-grid">
         <div class="vs-card bad">
@@ -720,7 +760,7 @@
         </div>
       </div>
 
-      <p style="font-size:13px; color:var(--text); margin-top:32px; font-weight:600;">Session hijacking is the most underestimated risk in application security. Now you've seen why.</p>
+      <p style="font-size:14px; color:var(--text); margin-top:32px; font-weight:600;">Session hijacking is the most underestimated risk in application security. Now you've seen why.</p>
 
       <div class="footer">
         &#127850; CookieJar Lab by <a href="https://cyberdesserts.com">CyberDesserts</a> &middot; <a href="https://github.com/cyberdesserts/cookiejar-lab/blob/main/LICENSE">MIT License</a>
@@ -889,37 +929,39 @@
             '</div>' +
             '<div class="explainer-box">' +
               '<h4>What this means for your organisation</h4>' +
-              '<p style="font-size:13px;color:var(--text);margin-bottom:12px;"><strong>You just watched an attacker gain complete access to a user\'s account by replaying a single stolen cookie.</strong> No credentials were needed. No security alerts were triggered. Every protection the user had in place (strong password, two-factor authentication) was irrelevant.</p>' +
+              '<p style="font-size:14px;color:var(--text);margin-bottom:12px;"><strong>You just watched an attacker gain complete access to a user\'s account by replaying a single stolen cookie.</strong> No credentials were needed. No security alerts were triggered. Every protection the user had in place (strong password, two-factor authentication) was irrelevant.</p>' +
               '<p style="margin-bottom:6px;"><strong style="color:var(--text);">Invisible entry.</strong> ' +
                 'There\'s no failed login attempt, no suspicious IP alert, no MFA challenge. From the server\'s perspective, this is a normal, authenticated session. Most security tooling won\'t flag it.</p>' +
               '<p style="margin-bottom:6px;"><strong style="color:var(--text);">Full access, not partial.</strong> ' +
                 'The attacker inherits every permission alice has. If she\'s an admin, they\'re an admin. If she can access customer data, so can they. The blast radius is whatever the compromised user can reach.</p>' +
               '<p style="margin-bottom:14px;"><strong style="color:var(--text);">Your investment in MFA didn\'t help.</strong> ' +
                 'Passwords and 2FA protect one moment: the login. Everything after that login, every page load, every API call, every action, is authorized by this cookie alone. That\'s the gap.</p>' +
-              '<p style="font-size:13px;color:var(--text);margin-bottom:14px;">This isn\'t a flaw in how alice behaved. It\'s a flaw in how the application was built. And it\'s the default configuration for most web applications in production today.</p>' +
+              '<p style="font-size:14px;color:var(--text);margin-bottom:14px;">This isn\'t a flaw in how alice behaved. It\'s a flaw in how the application was built. And it\'s the default configuration for most web applications in production today.</p>' +
               '<div class="vuln-list">' +
-                '<strong style="color:var(--text);font-size:12px;">The 4 misconfigurations that made this possible:</strong><br>' +
+                '<strong style="color:var(--text);font-size:13px;">The 4 misconfigurations that made this possible:</strong><br>' +
                 '<span>httpOnly: false</span>. Malware reads the cookie straight from the browser. The user never knows.<br>' +
                 '<span>7-day expiry</span>. The attacker has a week-long window to use the stolen session.<br>' +
                 '<span>No server-side sessions</span>. Even after discovering the breach, there\'s no way to revoke access.<br>' +
                 '<span>No device binding</span>. The token works from any device, any location, anywhere in the world.' +
               '</div>' +
             '</div>' +
-            '<div class="urgency-box">' +
+            '<div class="urgency-box" id="real-world-impact">' +
               '<h4>This isn\'t a theoretical risk</h4>' +
-              '<p class="stat-hook">Session hijacking via infostealer malware is now the #1 method attackers use to bypass MFA. Stolen session tokens were behind breaches at major tech companies, financial institutions, and government agencies in 2024&ndash;2025.</p>' +
+              '<p class="stat-hook">Session hijacking via infostealer malware is now the #1 method attackers use to bypass MFA. Stolen session tokens have been behind some of the biggest breaches in recent years:</p>' +
               '<ul class="reality-check">' +
-                '<li>Every web app using cookie-based sessions is a potential target</li>' +
-                '<li>MFA protects login, but not the session that follows. Most orgs have a blind spot here.</li>' +
-                '<li>Infostealers are commodity malware, sold as-a-service for ~$200/month. The barrier to entry is near zero.</li>' +
+                '<li><strong>Lumma Stealer takedown (2025)</strong> - Microsoft and Europol dismantled the world\'s largest infostealer network after it infected 394,000+ Windows machines in just two months. It was back online within days.</li>' +
+                '<li><strong>Snowflake customers (2024)</strong> - Infostealer-harvested credentials (some years old) were used to breach 160+ organizations including AT&amp;T (109M customer records) and Ticketmaster (560M records).</li>' +
+                '<li><strong>Dutch National Police (2024)</strong> - A single stolen session cookie from an infostealer infection gave Russian state hackers access to contact details of 65,000 police officers via a pass-the-cookie attack.</li>' +
+                '<li><strong>Cookie-Bite attack (2025)</strong> - Researchers showed that a simple browser extension can steal Azure Entra ID session cookies, bypassing MFA and giving persistent access to Microsoft 365 for up to 90 days.</li>' +
               '</ul>' +
-              '<p class="closer">If your team builds or secures web applications, understanding this attack chain isn\'t optional. It\'s table stakes.</p>' +
+              '<p class="closer">If your team builds or secures web applications, this is the attack chain to understand. MFA protects the login, but not the session that follows.</p>' +
             '</div>' +
             '<div style="text-align:center; margin-top:20px;">' +
               '<button class="guide guide-green" onclick="showEnding()">See how to stop this <span class="arrow">&#8250;</span></button>' +
             '</div>' +
           '</div>';
 
+        document.getElementById('nav-impact').classList.remove('hidden');
       }, 800);
     }
 

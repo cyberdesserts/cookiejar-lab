@@ -49,6 +49,8 @@ Then open:
 
 </details>
 
+> **Start here:** [Lab Guide](docs/lab-guide.md) - Hands-on exercises with step-by-step instructions
+
 ## What You'll Learn
 
 1. **See cookie theft happen** - Log in with password + TOTP or Google OAuth, then view and copy your session cookie
@@ -65,10 +67,10 @@ Then open:
 - [Why Does This Work?](#why-does-this-work)
 - [Google OAuth and the Same Vulnerability](#google-oauth-and-the-same-vulnerability)
 - [Real-World Mitigations](#real-world-mitigations)
+- [Documentation](#documentation)
 - [Project Structure](#project-structure)
 - [Reset Lab Data](#reset-lab-data)
 - [Cleanup (HTTPS Mode)](#cleanup-https-mode)
-- [Documentation](#documentation)
 - [Legal Disclaimer](#legal-disclaimer)
 - [License](#license)
 
@@ -83,7 +85,7 @@ Open the vulnerable app (`http://localhost:3001` or `https://cookiejar.test:3001
 Enter your username, password, and the 6-digit TOTP code from your authenticator app. You've now authenticated with "strong" multi-factor authentication.
 
 **Step 3 - Visit the Cookie Vault**
-Click "Cookie Vault" on the dashboard. This page shows:
+Click "Cookie Vault" in the step bar. This page shows:
 - Your raw session cookie (a JWT token)
 - The decoded JWT payload with your user data
 - What an infostealer would extract from your browser's cookie database
@@ -159,6 +161,12 @@ Infostealers don't attack Google. They attack your browser's cookie store and st
 | Token binding | Cryptographically binds tokens to TLS connections | RFC 8471 |
 | Continuous auth signals | Risk-based session evaluation | Zero Trust |
 
+## Documentation
+
+- [Interactive Demo](https://cyberdesserts.github.io/cookiejar-lab/demo/) - No-setup browser walkthrough of the full attack
+- [Lab Guide](docs/lab-guide.md) - Detailed exercises, discussion questions, and further reading
+- [Security Notes](docs/security-notes.md) - mkcert safety guide and HTTPS cleanup checklist
+
 ## Project Structure
 
 ```
@@ -224,12 +232,6 @@ If you used `./setup.sh` to enable HTTPS, run `./cleanup.sh` when you're done:
 ```
 
 This removes the mkcert root CA from your system trust store and deletes the generated certificates. See [docs/security-notes.md](docs/security-notes.md) for more details on what mkcert does and why cleanup matters.
-
-## Documentation
-
-- [Interactive Demo](https://cyberdesserts.github.io/cookiejar-lab/demo/) - No-setup browser walkthrough of the full attack
-- [Lab Guide](docs/lab-guide.md) - Detailed exercises, discussion questions, and further reading
-- [Security Notes](docs/security-notes.md) - mkcert safety guide and HTTPS cleanup checklist
 
 ## Legal Disclaimer
 

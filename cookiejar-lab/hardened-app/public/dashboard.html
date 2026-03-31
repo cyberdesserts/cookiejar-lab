@@ -6,6 +6,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>">
   <title>Dashboard | CookieJar Lab (Hardened)</title>
   <style>
+    html { overflow-y: scroll; }
     :root {
       --bg: #0f1117;
       --surface: #1a1d27;
@@ -18,42 +19,47 @@
       --border: #2d3348;
       --green: #51cf66;
       --danger: #ff4757;
+      --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; background: var(--bg); color: var(--text); min-height: 100vh; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
     .header {
       background: linear-gradient(135deg, #1a1d27 0%, #1a2d1e 100%);
       border-bottom: 1px solid var(--border);
-      padding: 20px 32px;
+      padding: 22px 35px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
-    .header h1 { font-size: 20px; }
+    .header h1 { font-size: 22px; }
     .header h1 span { color: var(--accent); }
-    .header-right { display: flex; align-items: center; gap: 16px; }
-    .app-badge { padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+    .header-left { display: flex; flex-direction: column; gap: 4px; }
+    .header-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .app-badge { padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
     .badge-hard { background: var(--green); color: #0f1117; }
-    .nav-link { color: var(--text-dim); text-decoration: none; font-size: 13px; transition: color 0.2s; white-space: nowrap; }
+    .nav-link { color: var(--text-dim); text-decoration: none; font-size: 14px; transition: color 0.2s; white-space: nowrap; }
     .nav-link:hover { color: var(--text); }
     .nav-link.active { color: var(--accent); }
 
-    .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+    .container { max-width: 960px; margin: 40px auto; padding: 0 20px; }
 
     .welcome-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 28px;
+      padding: 31px;
       margin-bottom: 24px;
     }
-    .welcome-card h2 { font-size: 22px; margin-bottom: 8px; }
+    .welcome-card h2 { font-size: 24px; margin-bottom: 8px; }
     .auth-badge {
       display: inline-block;
       padding: 4px 10px;
       border-radius: 4px;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: bold;
       text-transform: uppercase;
     }
@@ -64,16 +70,16 @@
       background: rgba(81, 207, 102, 0.05);
       border: 1px solid rgba(81, 207, 102, 0.2);
       border-radius: 12px;
-      padding: 24px;
+      padding: 26px;
       margin-bottom: 24px;
     }
-    .cookie-demo h3 { font-size: 14px; color: var(--accent); margin-bottom: 12px; }
+    .cookie-demo h3 { font-size: 15px; color: var(--accent); margin-bottom: 12px; }
     .cookie-demo code {
       display: block;
       background: var(--bg);
       padding: 12px;
       border-radius: 6px;
-      font-size: 12px;
+      font-size: 13px;
       color: var(--text-dim);
       margin: 8px 0;
     }
@@ -93,23 +99,23 @@
       transition: border-color 0.2s, transform 0.2s;
     }
     .nav-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .nav-card h3 { font-size: 14px; margin-bottom: 6px; }
-    .nav-card p { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
-    .nav-card .icon { font-size: 24px; margin-bottom: 8px; }
+    .nav-card h3 { font-size: 15px; margin-bottom: 6px; }
+    .nav-card p { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+    .nav-card .icon { font-size: 26px; margin-bottom: 8px; }
 
     .session-panel {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 28px;
+      padding: 31px;
     }
-    .session-panel h3 { font-size: 14px; margin-bottom: 16px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+    .session-panel h3 { font-size: 15px; margin-bottom: 16px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
     .session-row {
       display: flex;
       justify-content: space-between;
       padding: 8px 0;
       border-bottom: 1px solid var(--border);
-      font-size: 13px;
+      font-size: 14px;
     }
     .session-row:last-child { border-bottom: none; }
     .session-row .label { color: var(--text-dim); }
@@ -121,8 +127,7 @@
       padding: 8px 16px;
       border: none;
       border-radius: 6px;
-      font-family: inherit;
-      font-size: 13px;
+      font-size: 14px;
       cursor: pointer;
       transition: opacity 0.2s;
       text-decoration: none;
@@ -133,7 +138,7 @@
       min-width: 80px;
       text-align: center;
       padding: 6px 14px;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
       border-radius: 6px;
       cursor: pointer;
@@ -141,7 +146,6 @@
       display: inline-block;
       transition: opacity 0.2s;
       white-space: nowrap;
-      font-family: inherit;
     }
     .nav-auth-btn:hover { opacity: 0.85; }
     .nav-auth-btn.login-btn {
@@ -160,30 +164,33 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 16px 32px;
+      padding: 18px 35px;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       gap: 0;
+      position: sticky;
+      z-index: 99;
     }
     .journey-step {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 12px;
+      font-size: 13px;
       color: var(--text-dim);
       opacity: 0.4;
       white-space: nowrap;
     }
+    .journey-step { text-decoration: none; }
     .journey-step.completed { opacity: 0.7; }
     .journey-step.active { opacity: 1; color: var(--accent); font-weight: 600; }
     .journey-dot {
-      width: 24px;
-      height: 24px;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: bold;
       border: 2px solid var(--border);
       color: var(--text-dim);
@@ -198,76 +205,107 @@
       background: linear-gradient(135deg, rgba(81,207,102,0.08), rgba(81,207,102,0.08));
       border: 1px solid rgba(81,207,102,0.25);
       border-radius: 12px;
-      padding: 24px;
+      padding: 26px;
       margin-top: 32px;
       text-align: center;
     }
     .next-step-cta .next-label {
-      font-size: 10px;
+      font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 1.5px;
       color: var(--text-dim);
     }
-    .next-step-cta h3 { margin: 8px 0 6px; font-size: 16px; }
+    .next-step-cta h3 { margin: 8px 0 6px; font-size: 18px; }
     .next-step-cta h3 a { color: var(--accent); text-decoration: none; }
     .next-step-cta h3 a:hover { text-decoration: underline; }
-    .next-step-cta p { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+    .next-step-cta p { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+
+    .session-row .value, .cookie-demo code, code { font-family: var(--font-mono); }
+
+    .nav-impact { color: #f59f00 !important; background: rgba(245,159,0,0.12); padding: 4px 12px; border-radius: 4px; border: 1px solid rgba(245,159,0,0.3); font-weight: 600; font-size: 14px; }
+    .nav-impact:hover { background: rgba(245,159,0,0.22); }
+
+    @keyframes ctaPulse { 0%, 100% { border-color: rgba(81,207,102,0.25); } 50% { border-color: rgba(81,207,102,0.5); } }
+    .next-step-cta { animation: ctaPulse 3s ease-in-out infinite; }
+
+    @media (max-width: 640px) {
+      .header { padding: 12px 16px; }
+      .header h1 { font-size: 17px; }
+      .header-right { gap: 8px; flex-wrap: wrap; }
+      .nav-link { font-size: 12px; }
+      .app-badge { font-size: 10px; padding: 3px 8px; }
+      .nav-auth-btn { font-size: 11px; padding: 5px 10px; min-width: 60px; }
+      .journey-bar { padding: 10px 12px; }
+      .journey-step span { display: none; }
+      .journey-connector { width: 20px; }
+      .container { padding: 0 14px; margin-top: 24px; }
+      .nav-grid { grid-template-columns: 1fr; }
+      .session-row { flex-direction: column; gap: 2px; }
+      .welcome-card, .session-panel { padding: 20px; }
+      .nav-impact { font-size: 10px; padding: 3px 8px; }
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1><span>&#128274;</span> CookieJar Lab</h1>
+    <div class="header-left">
+      <h1><span>&#128274;</span> CookieJar Lab</h1>
+      <span class="app-badge badge-hard" id="app-badge">Hardened App</span>
+    </div>
     <div class="header-right">
-      <a href="/dashboard.html" class="nav-link active" data-nav="dashboard">Dashboard</a>
-      <a href="/attack-console.html" class="nav-link" data-nav="attack-console">Attack Console</a>
+      <a href="/dashboard.html" class="nav-link active" data-nav="lab">Lab</a>
       <a href="/explainer.html" class="nav-link" data-nav="learn">Learn</a>
       <a href="/concepts.html" class="nav-link" data-nav="concepts">Concepts</a>
-      <span class="app-badge badge-hard" id="app-badge">Hardened App</span>
+      <a href="#" class="nav-link nav-impact" onclick="toggleImpact(event)">Impact</a>
+      <a href="https://cyberdesserts.github.io/cookiejar-lab/" class="nav-link" target="_blank"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="vertical-align:-2px;margin-right:4px;"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
       <a href="/index.html" class="nav-auth-btn login-btn" id="nav-login">Login</a>
       <button class="nav-auth-btn logout-btn" id="nav-logout" onclick="logout()" style="display:none;">Logout</button>
     </div>
   </div>
 
   <div class="journey-bar">
-    <div class="journey-step completed">
+    <a href="/index.html" class="journey-step completed">
       <div class="journey-dot">&#10003;</div>
       <span>Register &amp; Login</span>
-    </div>
+    </a>
     <div class="journey-connector completed"></div>
     <div class="journey-step active">
       <div class="journey-dot">2</div>
       <span>Dashboard</span>
     </div>
     <div class="journey-connector"></div>
-    <div class="journey-step">
+    <a href="/attack-console.html" class="journey-step">
       <div class="journey-dot">3</div>
       <span>Attack Console</span>
-    </div>
+    </a>
   </div>
 
   <div class="container">
     <div id="loading" class="loading">Loading session...</div>
 
     <div id="content" style="display: none;">
+      <div style="background: var(--surface-2); border-left: 4px solid var(--accent); border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: var(--text-dim);">
+        <strong style="color: var(--text);">Test accounts only.</strong> This simulation intentionally exposes session tokens  - never use real credentials.
+      </div>
       <div class="welcome-card">
         <h2>Welcome, <span id="username"></span></h2>
         <span id="auth-badge" class="auth-badge"></span>
-        <p style="margin-top: 12px; color: var(--text-dim); font-size: 13px;" id="auth-desc"></p>
+        <p style="margin-top: 12px; color: var(--text-dim); font-size: 14px;" id="auth-desc"></p>
       </div>
 
       <!-- Cookie HttpOnly Demo -->
       <div class="cookie-demo">
         <h3>&#128274; HttpOnly Cookie Demo</h3>
-        <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 8px;">
+        <p style="font-size: 14px; color: var(--text-dim); margin-bottom: 8px;">
           Try reading the session cookie with JavaScript  - it's not accessible:
         </p>
         <code>document.cookie</code>
-        <p style="font-size: 12px;">Result: <span class="result" id="cookie-result"></span></p>
-        <p style="font-size: 12px; color: var(--text-dim); margin-top: 8px;">
+        <p style="font-size: 13px;">Result: <span class="result" id="cookie-result"></span></p>
+        <p style="font-size: 13px; color: var(--text-dim); margin-top: 8px;">
           In the vulnerable app (port 3001), <code>document.cookie</code> returns the full JWT.
           Here, httpOnly prevents that entirely  - an infostealer using JS injection gets nothing.
         </p>
-        <div style="background: rgba(81, 207, 102, 0.08); border: 1px solid rgba(81, 207, 102, 0.2); border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 12px; line-height: 1.7; color: var(--accent-2);">
+        <div style="background: rgba(81, 207, 102, 0.08); border: 1px solid rgba(81, 207, 102, 0.2); border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 13px; line-height: 1.7; color: var(--accent-2);">
           <strong>&#128269; Verify in DevTools:</strong> Press <code>F12</code> &rarr; Application &rarr; Cookies &rarr; click your site's URL.
           Find the <code>session</code> cookie  - notice <strong>HttpOnly is checked</strong>.
           Now open the vulnerable app in another tab and compare: its <code>session</code> cookie has HttpOnly unchecked.
@@ -343,14 +381,42 @@
     </div>
   </div>
 
+  <!-- Impact Modal -->
+  <div id="impact-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:200; overflow-y:auto;">
+    <div style="max-width:680px; margin:40px auto; background:var(--surface); border-radius:12px; padding:31px; border:1px solid var(--border);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h3 style="font-size:20px; color:#f59f00;">Real-World Impact</h3>
+        <button onclick="document.getElementById('impact-modal').style.display='none'" style="background:var(--surface-2); color:var(--text); border:1px solid var(--border); padding:6px 14px; border-radius:6px; cursor:pointer; font-size:14px;">Close</button>
+      </div>
+      <p style="font-size:14px; color:var(--text-dim); margin-bottom:20px; line-height:1.6;">Session cookie theft isn't theoretical - it's the #1 technique behind major breaches today.</p>
+      <div style="border-left:4px solid #f59f00; background:var(--surface-2); border-radius:0 8px 8px 0; padding:16px 18px; margin-bottom:14px;">
+        <h4 style="font-size:15px; margin-bottom:4px; color:var(--text);">Lumma Stealer Campaign (2025)</h4>
+        <p style="font-size:14px; color:var(--text-dim); line-height:1.6;">Lumma infostealer distributed via fake CAPTCHA pages and cracked software. Steals browser cookies, passwords, and crypto wallets. Microsoft disrupted its infrastructure in May 2025 after it infected 394,000+ Windows machines.</p>
+      </div>
+      <div style="border-left:4px solid #f59f00; background:var(--surface-2); border-radius:0 8px 8px 0; padding:16px 18px; margin-bottom:14px;">
+        <h4 style="font-size:15px; margin-bottom:4px; color:var(--text);">Snowflake Customer Breaches (2024)</h4>
+        <p style="font-size:14px; color:var(--text-dim); line-height:1.6;">Attackers used stolen session tokens (harvested by infostealers) to access Snowflake accounts of 165+ organizations including Ticketmaster (560M records) and AT&T (110M records). No MFA bypass needed - the cookies were enough.</p>
+      </div>
+      <div style="border-left:4px solid #f59f00; background:var(--surface-2); border-radius:0 8px 8px 0; padding:16px 18px; margin-bottom:14px;">
+        <h4 style="font-size:15px; margin-bottom:4px; color:var(--text);">Dutch Police Token Theft (2024)</h4>
+        <p style="font-size:14px; color:var(--text-dim); line-height:1.6;">A state actor stole session cookies from a Dutch police officer's machine via infostealer malware, accessing contact details of 63,000 officers. The attacker bypassed all authentication including the police network's MFA.</p>
+      </div>
+      <div style="border-left:4px solid #f59f00; background:var(--surface-2); border-radius:0 8px 8px 0; padding:16px 18px; margin-bottom:14px;">
+        <h4 style="font-size:15px; margin-bottom:4px; color:var(--text);">Cookie-Bite Attack on Azure Entra (2025)</h4>
+        <p style="font-size:14px; color:var(--text-dim); line-height:1.6;">Researchers demonstrated a browser extension that exfiltrates Azure Entra ID session cookies in real-time, bypassing MFA and Conditional Access Policies to access Microsoft 365 services including email, Teams, and SharePoint.</p>
+      </div>
+      <p style="font-size:14px; color:var(--text-dim); text-align:center; margin-top:8px;">This lab demonstrates the exact techniques used in these attacks.<br><a href="https://cyberdesserts.com" target="_blank" style="color:#f59f00; text-decoration:none;">cyberdesserts.com</a></p>
+    </div>
+  </div>
+
   <!-- Session Log Modal -->
   <div id="log-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; overflow-y:auto;">
-    <div style="max-width:800px; margin:40px auto; background:var(--surface); border-radius:12px; padding:28px; border:1px solid var(--border);">
+    <div style="max-width:800px; margin:40px auto; background:var(--surface); border-radius:12px; padding:31px; border:1px solid var(--border);">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h3 style="font-size:16px;">Session Event Log</h3>
+        <h3 style="font-size:18px;">Session Event Log</h3>
         <button onclick="document.getElementById('log-modal').style.display='none'" class="btn btn-logout">Close</button>
       </div>
-      <div id="log-content" style="font-size:12px;">Loading...</div>
+      <div id="log-content" style="font-size:13px;">Loading...</div>
     </div>
   </div>
 
@@ -414,9 +480,9 @@
         } else {
           html += data.currentSessionLogs.map(log => `
             <div style="padding:8px 12px; background:var(--bg); border-radius:4px; margin-bottom:4px;">
-              <span style="color:var(--accent-2);">${log.event_type}</span>
-              <span style="color:var(--text-dim); margin-left:8px;">${log.created_at}</span>
-              ${log.details ? `<br><span style="color:var(--text-dim);">${log.details}</span>` : ''}
+              <span style="color:var(--accent-2); font-size:14px;">${log.event_type}</span>
+              <span style="color:var(--text-dim); margin-left:8px; font-size:13px;">${log.created_at}</span>
+              ${log.details ? `<br><span style="color:var(--text-dim); font-size:13px;">${log.details}</span>` : ''}
             </div>
           `).join('');
         }
@@ -427,15 +493,15 @@
         } else {
           html += data.replayAttempts.map(log => `
             <div style="padding:8px 12px; background:rgba(255,71,87,0.1); border:1px solid rgba(255,71,87,0.2); border-radius:4px; margin-bottom:4px;">
-              <span style="color:#ff8a94;">${log.event_type}</span>
-              <span style="color:var(--text-dim); margin-left:8px;">${log.created_at}</span>
-              <br><span style="color:var(--text-dim);">IP: ${log.ip_address} | UA: ${(log.user_agent || '').substring(0, 60)}...</span>
-              ${log.details ? `<br><span style="color:#ff8a94;">${log.details}</span>` : ''}
+              <span style="color:#ff8a94; font-size:14px;">${log.event_type}</span>
+              <span style="color:var(--text-dim); margin-left:8px; font-size:13px;">${log.created_at}</span>
+              <br><span style="color:var(--text-dim); font-size:13px;">IP: ${log.ip_address} | UA: ${(log.user_agent || '').substring(0, 60)}...</span>
+              ${log.details ? `<br><span style="color:#ff8a94; font-size:13px;">${log.details}</span>` : ''}
             </div>
           `).join('');
         }
 
-        html += `<p style="margin-top:16px; color:var(--text-dim); font-size:11px;">${data.explanation}</p>`;
+        html += `<p style="margin-top:16px; color:var(--text-dim); font-size:12px;">${data.explanation}</p>`;
         document.getElementById('log-content').innerHTML = html;
       } catch (err) {
         document.getElementById('log-content').innerHTML = '<p style="color:#ff8a94;">Failed to load session log.</p>';
@@ -454,7 +520,27 @@
       } catch (e) {}
     }, 13 * 60 * 1000); // Refresh at 13 minutes (before 15-min expiry)
 
+    function toggleImpact(e) {
+      e.preventDefault();
+      var m = document.getElementById('impact-modal');
+      m.style.display = m.style.display === 'none' ? 'block' : 'none';
+    }
+    document.getElementById('impact-modal').addEventListener('click', function(e) {
+      if (e.target === this) this.style.display = 'none';
+    });
+
     loadDashboard();
+
+    // Dynamic journey bar positioning
+    (function syncJourneyTop() {
+      var header = document.querySelector('.header');
+      var bar = document.querySelector('.journey-bar');
+      if (header && bar) {
+        function sync() { bar.style.top = header.offsetHeight + 'px'; }
+        sync();
+        window.addEventListener('resize', sync);
+      }
+    })();
   </script>
 </body>
 </html>
